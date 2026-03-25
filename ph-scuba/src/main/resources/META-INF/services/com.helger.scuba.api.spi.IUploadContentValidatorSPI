@@ -1,0 +1,4 @@
+com.helger.scuba.validator.XsdContentValidator
+com.helger.scuba.validator.SchContentValidator
+com.helger.scuba.validator.XsltContentValidator
+com.helger.scuba.validator.ZipContentValidator
