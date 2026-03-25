@@ -7,13 +7,13 @@ This page describes how artifacts flow through the SCUBA upload pipeline.
 ```
    Resource              Validate             Store
   ┌────────┐           ┌─────────┐          ┌───────────┐
-  │ Input  │──resolve──│  Check   │──write──▶│  Repo     │
-  │ File   │           │  Content │          │  Storage  │
+  │ Input  │──resolve──│  SPI     │──write──▶│  Repo     │
+  │ File   │           │  Check   │          │  Storage  │
   └────────┘           └─────────┘          └───────────┘
        │                    │                     │
        ▼                    ▼                     ▼
-  DVRCoordinate       Extension-based        SHA-256 hash
-  + file extension    validator dispatch     + ToC update
+  DVRCoordinate       ServiceLoader          SHA-256 hash
+  + file extension    dispatches by ext      + ToC update
 ```
 
 ## Step-by-Step
@@ -22,44 +22,41 @@ This page describes how artifacts flow through the SCUBA upload pipeline.
 
 The caller provides:
 - A `DVRCoordinate` (group ID, artifact ID, version, optional classifier)
-- The file extension (e.g., `.xsd`, `.xml`, `.sch`, `.ves`)
 - The content to upload (as `IReadableResource` or byte array)
+- The file extension is extracted from the resource path (e.g., `.xsd`, `.ves`, `.sch`)
 
 ### 2. Validate Content (Pre-Upload)
 
-The upload pipeline selects validators based on the **file extension** of the artifact being uploaded.
-Each `IUploadValidator` registers for one or more extensions it can handle.
+The core module (`ph-scuba`) loads all `IUploadContentValidatorSPI` implementations via `ServiceLoader` and finds the validator that handles the artifact's file extension.
 
-**Generic validators** (in `ph-scuba`):
-- **Duplicate check** - does an artifact with this coordinate already exist?
-- **Size limit check** - is the content within acceptable bounds?
+**Validator dispatch** (replaces the `switch` in `CentralUploader._isContentValid()`):
 
-**Phive-specific validators** (in `ph-scuba-phive`):
-- `.xsd` - XML Schema well-formedness check
-- `.sch` - Schematron well-formedness check
-- `.xslt` - XSLT root element verification
-- `.ves` - VES structural validation, SPDX license check, requirement resolution
-- `.status` - VESStatus structural validation
-- `.zip` - ZIP entry integrity check
+| Extension | Validator | Module | What it checks |
+|-----------|-----------|--------|----------------|
+| `.xsd` | `XsdContentValidator` | ph-scuba | XML well-formedness, root element `schema` in W3C XSD namespace |
+| `.sch` | `SchContentValidator` | ph-scuba | XML well-formedness |
+| `.xslt` | `XsltContentValidator` | ph-scuba | XML well-formedness, root element `stylesheet` in XSL Transform namespace |
+| `.zip` | `ZipContentValidator` | ph-scuba | ZIP entry integrity (all entries readable) |
+| `.ves` | `VesContentValidator` | ph-scuba-phive | JAXB unmarshalling, SPDX license validation, requirement resolution, XSD catalog checks |
+| `.status` | `VesStatusContentValidator` | ph-scuba-phive | JAXB unmarshalling, deprecation consistency, replacement VESID existence |
 
-Custom validators can be registered for any extension.
+If no validator is registered for a file extension, the upload is rejected with an error.
 
-### 3. Write to Repository
+### 3. Check for Duplicates
 
-If validation passes:
+After content validation passes, the core checks whether a resource with the same `RepoStorageKeyOfArtefact` already exists in the repository. If so, the upload is rejected (`RepoKeyAlreadyInUseException`).
+
+### 4. Write to Repository
+
 1. The content is wrapped in an `IRepoStorageContent`
 2. A `RepoStorageKeyOfArtefact` is derived from the coordinate and file extension
 3. `IRepoStorage.write(key, content)` persists the artifact
 4. A `.sha256` hash file is written alongside the artifact
 5. The repository ToC is updated (via `RepoTopTocAuditor`)
 
-### 4. Audit
+### 5. Audit
 
-Upload events are dispatched to registered `IUploadAuditor` instances:
-- Upload started (coordinate, timestamp)
-- Upload succeeded / failed (result, duration)
-
-This enables logging, metrics, or external notification.
+Upload events are dispatched to registered `IUploadAuditor` instances for logging, metrics, or external notification.
 
 ## VES-Specific Workflows (ph-scuba-phive)
 
@@ -69,15 +66,15 @@ This enables logging, metrics, or external notification.
 2. Add licenses (validated against SPDX database)
 3. Add requirements (referenced artifacts that must exist in repository)
 4. Add schematrons/XSDs (validation rules)
-5. Marshal to XML using `VES1Marshaller` (with UNIX newline normalization)
-6. Upload via generic pipeline (extension `.ves`)
+5. Marshal to XML using `VES1Marshaller` with UNIX newline normalization
+6. Upload via generic pipeline (extension `.ves`, content validated by `VesContentValidator` SPI)
 
 ### Upload VESStatus
 
 1. Create `VesStatusType` JAXB object
 2. Set deprecation info, validity dates, history items
-3. Marshal to XML using `VESStatus1Marshaller`
-4. Upload via generic pipeline (extension `.status`)
+3. Marshal to XML using `VESStatus1Marshaller` with UNIX newline normalization
+4. Upload via generic pipeline (extension `.status`, content validated by `VesStatusContentValidator` SPI)
 
 ### Deprecate a VES
 
@@ -98,6 +95,7 @@ Uploads can fail at multiple stages:
 | Stage | Error | Behavior |
 |-------|-------|----------|
 | Resolve | Resource not found | Exception before validation |
-| Validate | Content invalid for extension | Upload rejected, error details returned |
+| Validate | No SPI validator for extension | Upload rejected |
+| Validate | Content invalid for extension | Upload rejected, error logged |
+| Write | Duplicate key | `RepoKeyAlreadyInUseException` |
 | Write | Storage failure | Exception, no partial state |
-| Write | Duplicate key | Configurable: reject or overwrite |

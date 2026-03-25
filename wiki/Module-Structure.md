@@ -6,9 +6,9 @@ SCUBA follows the established ph-* Maven multi-module pattern.
 
 ```
 scuba (parent POM)
-├── ph-scuba-api           Generic upload and validation API
-├── ph-scuba               Main business logic
-├── ph-scuba-phive         Phive-specific implementation (VES / VESStatus)
+├── ph-scuba-api           Generic upload and content validation API (incl. SPI)
+├── ph-scuba               Main business logic (upload pipeline)
+├── ph-scuba-phive         Phive-specific content validators and VES upload logic
 └── ph-scuba-webapp        Spring Boot 4.x standalone web application
 ```
 
@@ -20,28 +20,54 @@ The API module defines interfaces and value types with **no implementation depen
 
 **Key responsibilities:**
 - Generic upload interface (`IUploader`) - abstract contract for uploading artifacts
-- Content validation API based on **filename extension** - validators register for specific extensions (e.g., `.xsd`, `.sch`, `.xml`, `.xslt`, `.zip`) and verify content matches the expected type
 - Audit interface (`IUploadAuditor`) - upload event notifications
-- Resource resolution interface (`IResourceResolver`) - resolving uploadable content
-- **Java SPI (ServiceLoader) interface** for validator discovery - implementations in other modules (e.g., `ph-scuba-phive`) register themselves via `META-INF/services`, avoiding a compile-time dependency from API to implementation
+- **Content validation SPI** - a Java `ServiceLoader` interface (`IUploadContentValidatorSPI`) that allows modules to register content validators for specific file extensions
 
-**Java SPI pattern:**
-```
-ph-scuba-api                          ph-scuba-phive
-┌──────────────────────┐              ┌──────────────────────────────┐
-│ IUploadValidatorSPI  │◄── loaded ───│ PhiveUploadValidatorSPI      │
-│ (ServiceLoader       │    via SPI   │ (registers .ves, .status,    │
-│  interface)          │              │  .xsd, .sch, .xslt validators│)
-└──────────────────────┘              └──────────────────────────────┘
-                                       META-INF/services/
-                                         com.helger.scuba.api.spi.IUploadValidatorSPI
+**Content Validation SPI:**
+
+The SPI mirrors the dispatch logic currently in `CentralUploader._isContentValid()`. Instead of a hard-coded `switch` on file extension, validators are discovered at runtime via `ServiceLoader`:
+
+```java
+// Defined in ph-scuba-api
+public interface IUploadContentValidatorSPI
+{
+  // Which file extensions does this validator handle?
+  // e.g. ".xsd", ".sch", ".xslt", ".zip", ".ves", ".status"
+  ICommonsSet <String> getSupportedFileExtensions ();
+
+  // Validate the content of a file with the given extension
+  // Returns true if the content is valid for this file type
+  boolean isValidContent (String sFileExt, InputStream aIS) throws IOException;
+}
 ```
 
-The SPI interface allows `ph-scuba` (core) to discover and load validators from any module on the classpath without compile-time coupling.
+The SPI creates a **reverse dependency** - `ph-scuba-api` defines the contract, implementations register via `META-INF/services` without any compile-time coupling from API to implementation:
+
+```
+ph-scuba-api                            ph-scuba (core)
+┌────────────────────────────┐          ┌─────────────────────────────────┐
+│ IUploadContentValidatorSPI │◄── SPI ──│ XsdContentValidator             │
+│                            │          │ SchContentValidator             │
+│                            │          │ XsltContentValidator            │
+│                            │          │ ZipContentValidator             │
+└────────────────────────────┘          └─────────────────────────────────┘
+                                          META-INF/services/
+                                            com.helger.scuba.api.spi
+                                              .IUploadContentValidatorSPI
+
+                                        ph-scuba-phive
+                                        ┌─────────────────────────────────┐
+                                  SPI ──│ VesContentValidator             │
+                                        │ VesStatusContentValidator       │
+                                        └─────────────────────────────────┘
+                                          META-INF/services/
+                                            com.helger.scuba.api.spi
+                                              .IUploadContentValidatorSPI
+```
 
 **Dependencies:**
 - `ph-diver-api` - for `DVRCoordinate`, `DVRVersion`
-- `ph-commons` - for base utilities (`IReadableResource`, etc.)
+- `ph-commons` - for base utilities (`IReadableResource`, `ICommonsSet`, etc.)
 
 ---
 
@@ -51,73 +77,83 @@ The core module provides the **main business logic** and default implementation 
 
 **Key responsibilities:**
 - Concrete uploader implementation backed by `IRepoStorage`
-- Content validation chain (dispatches to validators by file extension)
+- **Loads all `IUploadContentValidatorSPI` implementations** via `ServiceLoader` and dispatches validation by file extension before upload
 - SHA-256 integrity hash management
 - ToC update coordination
 - UNIX newline normalization for deterministic hashing
-- Duplicate detection and overwrite policy
+- Duplicate detection (reject if key already exists)
+
+**Built-in content validators** (registered via SPI from this module):
+- `.xsd` - XML Schema: XML well-formedness + root element `schema` in `http://www.w3.org/2001/XMLSchema` namespace
+- `.sch` - Schematron: XML well-formedness check
+- `.xslt` - XSLT: XML well-formedness + root element `stylesheet` in `http://www.w3.org/1999/XSL/Transform` namespace
+- `.zip` - ZIP: entry integrity verification
+
+These are the generic validators from `CentralUploadValidator` that have **no phive dependency**.
 
 **Dependencies:**
 - `ph-scuba-api`
 - `ph-diver-repo` - for `IRepoStorage`, `RepoStorageKeyOfArtefact`, ToC support
+- `ph-xml` - for `DOMReader`, `XMLHelper` (XML well-formedness checks)
 
 ---
 
 ### ph-scuba-phive
 
-Implements the `ph-scuba-api` interfaces with **phive-engine integration** for VES and VESStatus artifacts.
+Implements `IUploadContentValidatorSPI` for **phive-specific file types** and provides VES/VESStatus upload convenience logic.
 
-**Key responsibilities:**
-- Upload and validate **VES** (Validation Executor Set) definitions
-  - Marshalling via `VES1Marshaller`
-  - Structural validation of VES XML
-  - Requirement resolution (verify referenced artifacts exist)
-  - SPDX license validation
-- Upload and manage **VESStatus** lifecycle
-  - Marshalling via `VESStatus1Marshaller`
-  - Deprecation management (reason, replacement VESID)
-  - Validity date management (validFrom, validTo)
-  - Status history tracking
-- Extension-based validators for phive-specific file types:
-  - `.ves` - VES definition files
-  - `.status` - VES status files
-  - `.xsd` - XML Schema files (well-formedness check)
-  - `.sch` - Schematron files (well-formedness check)
-  - `.xslt` - XSLT files (root element check)
+This module exists as a separate submodule because the VES and VESStatus validation requires phive dependencies (`phive-ves-model`, `phive-ves-engine`) which should not be pulled into the generic core.
 
-**This module mirrors the logic currently in `phive-central-tools`** (`CentralUploader` / `ICentralUploader` / `CentralUploadValidator`) but implements it against the generic `ph-scuba-api` interfaces.
+**Content validators** (registered via SPI):
+- `.ves` - VES definition validation:
+  - JAXB unmarshalling via `VES1Marshaller`
+  - SPDX license ID validation (uniqueness + valid IDs)
+  - License name cross-check
+  - Eager requirement loading via `VESLoader` (all required artifacts must exist)
+  - XSD catalog entry resolution
+- `.status` - VES status validation:
+  - JAXB unmarshalling via `VESStatus1Marshaller`
+  - Deprecation consistency (reason only if deprecated flag is set)
+  - Replacement VESID existence check
+
+**VES upload convenience** (ported from `CentralUploader`):
+- `addVES(VesType)` - marshal and upload VES XML
+- `addVESStatus(VesStatusType)` - marshal and upload VESStatus XML
+- `setVESDeprecated(DVRCoordinate, reason, replacement)` - read/update/write status
+- `setVESValidityDate(DVRCoordinate, validFrom, validTo)` - read/update/write status
+- UNIX newline normalization via `_getUnifiedMarshaller()` pattern
 
 **Dependencies:**
-- `ph-scuba-api`
+- `ph-scuba-api` (SPI interface)
 - `ph-scuba` (core upload logic)
-- `phive-ves-model` - for `VES1Marshaller`, `VESStatus1Marshaller`, JAXB types
-- `phive-ves-engine` - for `VESLoader`, validation execution
-- `phive-api` - for `IValidationExecutorSet`, `IValidationExecutorSetStatus`
+- `phive-ves-model` - for `VES1Marshaller`, `VESStatus1Marshaller`, JAXB types (`VesType`, `VesStatusType`)
+- `phive-ves-engine` - for `VESLoader`, `DefaultVESLoaderXSD`, `DefaultVESLoaderSchematron`
+- `phive-api` - for `IValidationExecutorSetStatus`, `ValidationExecutorSetStatus`
 
 ---
 
 ### ph-scuba-webapp
 
-A standalone **Spring Boot 4.x** web application providing an HTTP interface to the upload functionality.
+A standalone **Spring Boot 4.x** web application providing an HTTP interface for **upload operations**.
 
 **Pattern:** Follows the same structure as `phoss-ap-webapp` in the [phoss-ap](https://github.com/phax/phoss-ap) project.
 
 **Key responsibilities:**
 - REST API for upload operations
-- Web-based upload interface (optional)
 - Configuration via `application.properties`
 - Spring Boot Actuator for health/monitoring
 - API security (token-based authentication)
 
 **Spring Boot setup:**
-- Spring Boot 4.x with embedded server
+- Spring Boot 4.0.4 with embedded server
 - `@SpringBootApplication` main class
 - Executable JAR packaging via `spring-boot-maven-plugin`
 - Profile-based configuration (`application.properties`, `application-private.properties`)
+- Java 21
 
 **Dependencies:**
 - `ph-scuba` (core business logic)
-- `ph-scuba-phive` (phive-specific upload support)
+- `ph-scuba-phive` (phive-specific upload support, loaded via SPI at runtime)
 - `spring-boot-starter-web`
 - `spring-boot-starter-actuator`
 - Storage backend dependency as needed (`ph-diver-repo-http`, `ph-diver-repo-s3`)
@@ -127,30 +163,30 @@ A standalone **Spring Boot 4.x** web application providing an HTTP interface to 
 ## Dependency Graph
 
 ```
-ph-diver-api ◄──── ph-scuba-api
+ph-diver-api ◄──── ph-scuba-api (defines IUploadContentValidatorSPI)
                         ▲
                         │
-ph-diver-repo ◄─── ph-scuba (core)
-                        ▲
+ph-diver-repo ◄─── ph-scuba (core: loads SPI, built-in .xsd/.sch/.xslt/.zip validators)
+ph-xml ◄───────┘        ▲
                         │
                    ┌────┴──────────────┐
                    │                   │
             ph-scuba-phive      ph-scuba-webapp
+            (SPI: .ves/.status)        │
                    │                   │
-                   ▼                   │
-         phive-ves-model               │
-         phive-ves-engine              │
-         phive-api                     │
-                                       ▼
-                              Spring Boot 4.x
-                              ph-diver-repo-http / s3
+                   ▼                   ▼
+         phive-ves-model        Spring Boot 4.x
+         phive-ves-engine       ph-diver-repo-http / s3
+         phive-api
 ```
 
 ## Maven Parent POM
 
 The parent POM will:
-- Inherit from `com.helger:parent-pom` for consistent build settings
-- Import ph-diver and ph-commons BOMs via `<dependencyManagement>`
-- Import phive BOM for the ph-scuba-phive module
-- Import Spring Boot BOM for the webapp module
+- Inherit from `com.helger:parent-pom:3.0.3`
+- GroupId: `com.helger.scuba`
+- Version: `0.0.1-SNAPSHOT`
+- Java release: `21`
+- Import ph-diver (`4.2.0`), ph-commons (`12.1.5`), and phive (`12.0.1`) BOMs via `<dependencyManagement>`
+- Import Spring Boot (`4.0.4`) BOM for the webapp module
 - Define shared plugin configuration (compiler, surefire, etc.)
