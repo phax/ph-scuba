@@ -21,11 +21,11 @@ import java.io.InputStream;
 import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
-import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.xml.XMLHelper;
 import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
@@ -56,11 +56,16 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
                                  @NonNull final ErrorList aErrorList)
   {
     // Check well-formedness
-    final Document aDoc = DOMReader.readXMLDOM (aIS,
-                                                new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList)));
+    final DOMReaderSettings aDRS = new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList));
+    aDRS.exceptionCallbacks ()
+        .set (ex -> aErrorList.add (SingleError.builderError ()
+                                               .errorText ("Error parsing XML")
+                                               .linkedException (ex)
+                                               .build ()));
+    final Document aDoc = DOMReader.readXMLDOM (aIS, aDRS);
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
-      aErrorList.add (SingleError.builderError ().errorText ("Failed to parse XSLT as valid XML").build ());
+      aErrorList.add (SingleError.builderError ().errorText ("XSLT is not well-formed XML").build ());
       return false;
     }
 

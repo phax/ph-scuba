@@ -18,7 +18,6 @@ package com.helger.scuba.validator;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
@@ -26,6 +25,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.junit.Test;
 
+import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
 public final class ZipContentValidatorTest
@@ -44,7 +44,7 @@ public final class ZipContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertTrue (VALIDATOR.isValidContent (".zip", new ByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertTrue (VALIDATOR.isValidContent (".zip", new NonBlockingByteArrayInputStream (baos.toByteArray ()), aErrors));
     assertTrue (aErrors.isEmpty ());
   }
 
@@ -58,7 +58,8 @@ public final class ZipContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertTrue (VALIDATOR.isValidContent (".zip", new ByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertTrue (VALIDATOR.isValidContent (".zip", new NonBlockingByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertTrue (aErrors.isEmpty ());
   }
 
   @Test
@@ -68,7 +69,7 @@ public final class ZipContentValidatorTest
     // Not a valid ZIP - but ZipInputStream may not throw; it just returns null entries
     // This should still return true (no entries to validate)
     final boolean bResult = VALIDATOR.isValidContent (".zip",
-                                                      new ByteArrayInputStream ("not a zip".getBytes (StandardCharsets.UTF_8)),
+                                                      new NonBlockingByteArrayInputStream ("not a zip".getBytes (StandardCharsets.UTF_8)),
                                                       aErrors);
     // ZipInputStream silently returns 0 entries for non-ZIP data
     assertTrue (bResult);

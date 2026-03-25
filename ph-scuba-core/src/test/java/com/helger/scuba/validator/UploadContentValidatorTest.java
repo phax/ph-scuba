@@ -19,14 +19,16 @@ package com.helger.scuba.validator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.Test;
 
+import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
+import com.helger.base.io.nonblocking.NonBlockingByteArrayOutputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
@@ -34,41 +36,12 @@ import com.helger.diver.repo.impl.RepoStorageInMemory;
 
 public final class UploadContentValidatorTest
 {
+  @NonNull
   private static UploadContentValidator _createValidator ()
   {
     return new UploadContentValidator (RepoStorageInMemory.createDefault ("test",
-                                                                          ERepoWritable.WITH_WRITE,
-                                                                          ERepoDeletable.WITH_DELETE));
-  }
-
-  @Test
-  public void testValidXsd () throws Exception
-  {
-    final UploadContentValidator aValidator = _createValidator ();
-    final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                        "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
-                        "  <xs:element name='test' type='xs:string'/>\n" +
-                        "</xs:schema>";
-    final ErrorList aErrors = new ErrorList ();
-    assertTrue (aValidator.validateContent ("",
-                                            ".xsd",
-                                            new ByteArrayInputStream (sXsd.getBytes (StandardCharsets.UTF_8)),
-                                            aErrors));
-    assertTrue (aErrors.isEmpty ());
-  }
-
-  @Test
-  public void testInvalidXsdWithContext () throws Exception
-  {
-    final UploadContentValidator aValidator = _createValidator ();
-    final ErrorList aErrors = new ErrorList ();
-    assertFalse (aValidator.validateContent ("my-artifact",
-                                             ".xsd",
-                                             new ByteArrayInputStream ("broken".getBytes (StandardCharsets.UTF_8)),
-                                             aErrors));
-    assertFalse (aErrors.isEmpty ());
-    // Verify context path is in the error message
-    assertTrue (aErrors.getFirst ().getErrorText (java.util.Locale.ROOT).startsWith ("my-artifact: "));
+                                                                          ERepoWritable.WITHOUT_WRITE,
+                                                                          ERepoDeletable.WITHOUT_DELETE));
   }
 
   @Test
@@ -83,6 +56,36 @@ public final class UploadContentValidatorTest
   }
 
   @Test
+  public void testValidXsd () throws Exception
+  {
+    final UploadContentValidator aValidator = _createValidator ();
+    final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                        "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
+                        "  <xs:element name='test' type='xs:string'/>\n" +
+                        "</xs:schema>";
+    final ErrorList aErrors = new ErrorList ();
+    assertTrue (aValidator.validateContent ("",
+                                            ".xsd",
+                                            new NonBlockingByteArrayInputStream (sXsd.getBytes (StandardCharsets.UTF_8)),
+                                            aErrors));
+    assertTrue (aErrors.isEmpty ());
+  }
+
+  @Test
+  public void testInvalidXsdWithContext () throws Exception
+  {
+    final UploadContentValidator aValidator = _createValidator ();
+    final ErrorList aErrors = new ErrorList ();
+    assertFalse (aValidator.validateContent ("my-artifact",
+                                             ".xsd",
+                                             new NonBlockingByteArrayInputStream ("broken".getBytes (StandardCharsets.UTF_8)),
+                                             aErrors));
+    assertFalse (aErrors.isEmpty ());
+    // Verify context path is in the error message
+    assertTrue (aErrors.getFirst ().getErrorText (Locale.ROOT).startsWith ("my-artifact: "));
+  }
+
+  @Test
   public void testZipWithRecursiveXsdValidation () throws Exception
   {
     final UploadContentValidator aValidator = _createValidator ();
@@ -92,7 +95,7 @@ public final class UploadContentValidatorTest
                         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
                         "  <xs:element name='test' type='xs:string'/>\n" +
                         "</xs:schema>";
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream ();
+    final NonBlockingByteArrayOutputStream baos = new NonBlockingByteArrayOutputStream ();
     try (final ZipOutputStream zos = new ZipOutputStream (baos))
     {
       zos.putNextEntry (new ZipEntry ("schemas/test.xsd"));
@@ -101,7 +104,7 @@ public final class UploadContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertTrue (aValidator.validateContent ("", ".zip", new ByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertTrue (aValidator.validateContent ("", ".zip", baos.getAsInputStream (), aErrors));
     assertTrue (aErrors.isEmpty ());
   }
 
@@ -111,7 +114,7 @@ public final class UploadContentValidatorTest
     final UploadContentValidator aValidator = _createValidator ();
 
     // Create a ZIP containing an invalid XSD
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream ();
+    final NonBlockingByteArrayOutputStream baos = new NonBlockingByteArrayOutputStream ();
     try (final ZipOutputStream zos = new ZipOutputStream (baos))
     {
       zos.putNextEntry (new ZipEntry ("bad.xsd"));
@@ -120,9 +123,9 @@ public final class UploadContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertFalse (aValidator.validateContent ("", ".zip", new ByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertFalse (aValidator.validateContent ("", ".zip", baos.getAsInputStream (), aErrors));
     assertFalse (aErrors.isEmpty ());
     // Error should contain the ZIP entry path context
-    assertTrue (aErrors.getFirst ().getErrorText (java.util.Locale.ROOT).contains ("bad.xsd"));
+    assertTrue (aErrors.getFirst ().getErrorText (Locale.ROOT).contains ("bad.xsd"));
   }
 }

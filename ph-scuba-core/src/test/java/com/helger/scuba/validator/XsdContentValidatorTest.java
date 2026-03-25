@@ -20,11 +20,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.Test;
 
+import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
 public final class XsdContentValidatorTest
@@ -47,7 +47,7 @@ public final class XsdContentValidatorTest
                         "</xs:schema>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (VALIDATOR.isValidContent (".xsd",
-                                          new ByteArrayInputStream (sXsd.getBytes (StandardCharsets.UTF_8)),
+                                          new NonBlockingByteArrayInputStream (sXsd.getBytes (StandardCharsets.UTF_8)),
                                           aErrors));
     assertTrue (aErrors.isEmpty ());
   }
@@ -57,7 +57,7 @@ public final class XsdContentValidatorTest
   {
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xsd",
-                                           new ByteArrayInputStream ("not xml".getBytes (StandardCharsets.UTF_8)),
+                                           new NonBlockingByteArrayInputStream ("not xml".getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
     assertFalse (aErrors.isEmpty ());
   }
@@ -68,7 +68,7 @@ public final class XsdContentValidatorTest
     final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" + "<root xmlns='http://www.w3.org/2001/XMLSchema'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xsd",
-                                           new ByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
+                                           new NonBlockingByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
     assertFalse (aErrors.isEmpty ());
   }
@@ -79,7 +79,7 @@ public final class XsdContentValidatorTest
     final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" + "<schema xmlns='urn:wrong'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xsd",
-                                           new ByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
+                                           new NonBlockingByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
     assertFalse (aErrors.isEmpty ());
   }

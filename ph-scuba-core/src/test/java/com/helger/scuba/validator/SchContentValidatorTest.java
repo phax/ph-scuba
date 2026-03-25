@@ -19,11 +19,11 @@ package com.helger.scuba.validator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.Test;
 
+import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
 public final class SchContentValidatorTest
@@ -39,8 +39,9 @@ public final class SchContentValidatorTest
                         "</schema>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (VALIDATOR.isValidContent (".sch",
-                                          new ByteArrayInputStream (sSch.getBytes (StandardCharsets.UTF_8)),
+                                          new NonBlockingByteArrayInputStream (sSch.getBytes (StandardCharsets.UTF_8)),
                                           aErrors));
+    assertTrue (aErrors.isEmpty ());
   }
 
   @Test
@@ -48,7 +49,7 @@ public final class SchContentValidatorTest
   {
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".sch",
-                                           new ByteArrayInputStream ("not xml at all".getBytes (StandardCharsets.UTF_8)),
+                                           new NonBlockingByteArrayInputStream ("not xml at all".getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
     assertFalse (aErrors.isEmpty ());
   }

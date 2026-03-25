@@ -20,11 +20,11 @@ import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
 
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
-import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
 import com.helger.xml.serialize.read.DOMReader;
@@ -50,11 +50,16 @@ public final class SchContentValidator implements IUploadContentValidatorSPI
                                  @NonNull final InputStream aIS,
                                  @NonNull final ErrorList aErrorList)
   {
-    if (DOMReader.readXMLDOM (aIS,
-                              new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList))) ==
-        null)
+    // Check well-formedness
+    final DOMReaderSettings aDRS = new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList));
+    aDRS.exceptionCallbacks ()
+        .set (ex -> aErrorList.add (SingleError.builderError ()
+                                               .errorText ("Error parsing XML")
+                                               .linkedException (ex)
+                                               .build ()));
+    if (DOMReader.readXMLDOM (aIS, aDRS) == null)
     {
-      aErrorList.add (SingleError.builderError ().errorText ("Failed to parse Schematron as valid XML").build ());
+      aErrorList.add (SingleError.builderError ().errorText ("Schematron is not well-formed XML").build ());
       return false;
     }
     return true;

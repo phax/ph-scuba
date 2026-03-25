@@ -19,11 +19,11 @@ package com.helger.scuba.validator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.Test;
 
+import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
 public final class XsltContentValidatorTest
@@ -39,7 +39,7 @@ public final class XsltContentValidatorTest
                          "</xsl:stylesheet>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (VALIDATOR.isValidContent (".xslt",
-                                          new ByteArrayInputStream (sXslt.getBytes (StandardCharsets.UTF_8)),
+                                          new NonBlockingByteArrayInputStream (sXslt.getBytes (StandardCharsets.UTF_8)),
                                           aErrors));
     assertTrue (aErrors.isEmpty ());
   }
@@ -51,7 +51,7 @@ public final class XsltContentValidatorTest
                         "<transform xmlns='http://www.w3.org/1999/XSL/Transform'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xslt",
-                                           new ByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
+                                           new NonBlockingByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
     assertFalse (aErrors.isEmpty ());
   }
@@ -61,7 +61,7 @@ public final class XsltContentValidatorTest
   {
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xslt",
-                                           new ByteArrayInputStream ("not xml".getBytes (StandardCharsets.UTF_8)),
+                                           new NonBlockingByteArrayInputStream ("not xml".getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
     assertFalse (aErrors.isEmpty ());
   }
