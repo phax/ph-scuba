@@ -57,6 +57,19 @@ public interface IUploadContentValidatorSPI
   }
 
   /**
+   * Initialize this validator with the content validator registry. Called once after SPI discovery.
+   * Validators that need to recursively validate nested content (e.g., files inside a ZIP) should
+   * store this reference and use it for recursive dispatch.
+   *
+   * @param aRegistry
+   *        The content validator registry for recursive validation. May not be <code>null</code>.
+   */
+  default void initContentValidatorRegistry (@NonNull final IUploadContentValidatorRegistry aRegistry)
+  {
+    // Default: do nothing. Override if recursive validation is needed.
+  }
+
+  /**
    * Validate the content of a file with the given extension.
    *
    * @param sFileExt

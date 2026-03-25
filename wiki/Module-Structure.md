@@ -20,6 +20,7 @@ The API module defines interfaces and value types with **no implementation depen
 **Key responsibilities:**
 - Generic upload interface (`IScubaUploader`) - abstract contract for uploading artifacts
 - **Content validation SPI** - a Java `ServiceLoader` interface (`IUploadContentValidatorSPI`) that allows modules to register content validators for specific file extensions
+- **Content validator registry** (`IUploadContentValidatorRegistry`) - dispatch interface for validating content with context path support, enabling recursive/nested validation (e.g., ZIP entries)
 
 **Content Validation SPI:**
 
@@ -74,8 +75,8 @@ ph-scuba-api                            ph-scuba (core)
 The core module provides the **main business logic** and default implementation of the upload pipeline.
 
 **Key responsibilities:**
-- Concrete uploader implementation backed by `IRepoStorage`
-- **Loads all `IUploadContentValidatorSPI` implementations** via `ServiceLoader` and dispatches validation by file extension before upload
+- Concrete uploader implementation (`ScubaUploader`) backed by `IRepoStorage`
+- **`UploadContentValidator`** - a reusable, standalone class that loads all `IUploadContentValidatorSPI` implementations via `ServiceLoader` and dispatches validation by file extension. Supports nested context paths for hierarchical error reporting (e.g., validating files inside ZIP archives).
 - SHA-256 integrity hash management
 - ToC update coordination
 - UNIX newline normalization for deterministic hashing
@@ -85,7 +86,7 @@ The core module provides the **main business logic** and default implementation 
 - `.xsd` - XML Schema: XML well-formedness + root element `schema` in `http://www.w3.org/2001/XMLSchema` namespace
 - `.sch` - Schematron: XML well-formedness check
 - `.xslt` - XSLT: XML well-formedness + root element `stylesheet` in `http://www.w3.org/1999/XSL/Transform` namespace
-- `.zip` - ZIP: entry integrity verification
+- `.zip` - ZIP: entry integrity verification + **recursive content validation** of entries via `IUploadContentValidatorRegistry`
 
 These are the generic validators from `CentralUploadValidator` that have **no phive dependency**.
 

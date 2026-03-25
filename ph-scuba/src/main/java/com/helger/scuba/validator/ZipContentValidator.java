@@ -22,17 +22,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.helger.base.io.stream.NonClosingInputStream;
 import com.helger.base.io.stream.NullOutputStream;
 import com.helger.base.io.stream.StreamHelper;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
+import com.helger.io.file.FilenameHelper;
+import com.helger.scuba.api.spi.IUploadContentValidatorRegistry;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
- * Content validator for ZIP files (.zip). Verifies all ZIP entries are readable.
+ * Content validator for ZIP files (.zip). Verifies all ZIP entries are readable and recursively
+ * validates entry content based on file extension using the content validator registry.
  *
  * @author Philip Helger
  */
@@ -40,10 +46,20 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
 {
   public static final String FILE_EXT_ZIP = ".zip";
 
+  private static final Logger LOGGER = LoggerFactory.getLogger (ZipContentValidator.class);
+
+  private IUploadContentValidatorRegistry m_aRegistry;
+
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
   {
     return new CommonsHashSet <> (FILE_EXT_ZIP);
+  }
+
+  @Override
+  public void initContentValidatorRegistry (@NonNull final IUploadContentValidatorRegistry aRegistry)
+  {
+    m_aRegistry = aRegistry;
   }
 
   public boolean isValidContent (@NonNull final String sFileExt,
@@ -57,19 +73,37 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
       {
         if (!aZipEntry.isDirectory ())
         {
-          // TODO how to provide recursive validation
-          if (StreamHelper.copyByteStream ()
-                          .from (aZIPIS)
-                          .closeFrom (false)
-                          .to (new NullOutputStream ())
-                          .closeTo (false)
-                          .build ()
-                          .isFailure ())
+          final String sEntryName = aZipEntry.getName ();
+          final String sEntryExt = "." + FilenameHelper.getExtension (sEntryName);
+
+          // Try recursive validation if a validator exists for this entry's extension
+          if (m_aRegistry != null && m_aRegistry.hasValidatorForExtension (sEntryExt))
           {
-            aErrorList.add (SingleError.builderError ()
-                                       .errorText ("Failed to read ZIP entry '" + aZipEntry.getName () + "'")
-                                       .build ());
-            return false;
+            LOGGER.debug ("Recursively validating ZIP entry '" + sEntryName + "'");
+
+            // Use NonClosingInputStream so the ZipInputStream is not closed by the validator
+            if (!m_aRegistry.validateContent (".zip / " + sEntryName,
+                                              sEntryExt,
+                                              new NonClosingInputStream (aZIPIS),
+                                              aErrorList))
+              return false;
+          }
+          else
+          {
+            // No specific validator - just verify the entry is readable
+            if (StreamHelper.copyByteStream ()
+                            .from (aZIPIS)
+                            .closeFrom (false)
+                            .to (new NullOutputStream ())
+                            .closeTo (false)
+                            .build ()
+                            .isFailure ())
+            {
+              aErrorList.add (SingleError.builderError ()
+                                         .errorText ("Failed to read ZIP entry '" + sEntryName + "'")
+                                         .build ());
+              return false;
+            }
           }
         }
       }

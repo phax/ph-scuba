@@ -36,11 +36,21 @@ The core module (`ph-scuba`) loads all `IUploadContentValidatorSPI` implementati
 | `.xsd` | `XsdContentValidator` | ph-scuba | XML well-formedness, root element `schema` in W3C XSD namespace |
 | `.sch` | `SchContentValidator` | ph-scuba | XML well-formedness |
 | `.xslt` | `XsltContentValidator` | ph-scuba | XML well-formedness, root element `stylesheet` in XSL Transform namespace |
-| `.zip` | `ZipContentValidator` | ph-scuba | ZIP entry integrity (all entries readable) |
+| `.zip` | `ZipContentValidator` | ph-scuba | ZIP entry integrity + recursive content validation of entries |
 | `.ves` | `VesContentValidator` | ph-scuba-phive | JAXB unmarshalling, SPDX license validation, requirement resolution, XSD catalog checks |
 | `.status` | `VesStatusContentValidator` | ph-scuba-phive | JAXB unmarshalling, deprecation consistency, replacement VESID existence |
 
 If no validator is registered for a file extension, the upload is rejected with an error.
+
+**Recursive validation and context paths:**
+
+Validation is handled by `UploadContentValidator` (implements `IUploadContentValidatorRegistry`), which is a standalone, reusable component separate from `ScubaUploader`. It supports nested context paths for hierarchical error reporting:
+
+- Top-level: errors appear as-is (e.g., `"The root element name for XSD must be 'schema'"`)
+- Inside a ZIP: errors are prefixed with the entry path (e.g., `"archive.zip/schemas/my-schema.xsd: The root element name for XSD must be 'schema'"`)
+- Nesting is fully flexible - a ZIP inside a ZIP produces multi-level prefixes
+
+Validators that need recursive dispatch (like `ZipContentValidator`) receive the `IUploadContentValidatorRegistry` via the `initContentValidatorRegistry()` SPI callback and use it to validate nested entries.
 
 ### 3. Check for Duplicates
 

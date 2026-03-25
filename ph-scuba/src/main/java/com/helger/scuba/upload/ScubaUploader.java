@@ -18,7 +18,6 @@ package com.helger.scuba.upload;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ServiceLoader;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -30,8 +29,6 @@ import com.helger.annotation.Nonnegative;
 import com.helger.base.enforce.ValueEnforcer;
 import com.helger.base.state.EValidity;
 import com.helger.base.string.StringHelper;
-import com.helger.collection.commons.CommonsArrayList;
-import com.helger.collection.commons.ICommonsList;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.IRepoStorageContent;
@@ -41,12 +38,11 @@ import com.helger.io.file.FilenameHelper;
 import com.helger.io.resource.IReadableResource;
 import com.helger.scuba.api.IScubaUploader;
 import com.helger.scuba.api.repo.RepoKeyAlreadyInUseException;
-import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
+import com.helger.scuba.validator.UploadContentValidator;
 
 /**
- * Default implementation of {@link IScubaUploader}. Loads all {@link IUploadContentValidatorSPI}
- * implementations via {@link ServiceLoader} and dispatches content validation by file extension
- * before upload.
+ * Default implementation of {@link IScubaUploader}. Delegates content validation to
+ * {@link UploadContentValidator} which manages SPI loading and dispatch.
  *
  * @author Philip Helger
  */
@@ -81,24 +77,13 @@ public class ScubaUploader implements IScubaUploader
 
   private static final Logger LOGGER = LoggerFactory.getLogger (ScubaUploader.class);
   private final IRepoStorageWithToc m_aRepo;
-  private final ICommonsList <IUploadContentValidatorSPI> m_aValidators;
+  private final UploadContentValidator m_aContentValidator;
 
   public ScubaUploader (@NonNull final IRepoStorageWithToc aRepo)
   {
     ValueEnforcer.notNull (aRepo, "Repo");
     m_aRepo = aRepo;
-
-    // Load all SPI validators
-    m_aValidators = new CommonsArrayList <> ();
-    for (final IUploadContentValidatorSPI aValidator : ServiceLoader.load (IUploadContentValidatorSPI.class))
-    {
-      aValidator.initRepoStorage (aRepo);
-      m_aValidators.add (aValidator);
-      LOGGER.info ("Loaded upload content validator '" +
-                   aValidator.getClass ().getName () +
-                   "' for extensions " +
-                   aValidator.getSupportedFileExtensions ());
-    }
+    m_aContentValidator = new UploadContentValidator (aRepo);
   }
 
   @NonNull
@@ -107,43 +92,13 @@ public class ScubaUploader implements IScubaUploader
     return m_aRepo;
   }
 
-  @Nullable
-  private IUploadContentValidatorSPI _findValidator (@NonNull final String sFileExt)
+  /**
+   * @return The content validator used by this uploader. Never <code>null</code>.
+   */
+  @NonNull
+  public UploadContentValidator getContentValidator ()
   {
-    for (final IUploadContentValidatorSPI aValidator : m_aValidators)
-      if (aValidator.getSupportedFileExtensions ().contains (sFileExt))
-        return aValidator;
-    return null;
-  }
-
-  private boolean _isContentValid (@Nullable final String sContext,
-                                   @NonNull final String sFileExt,
-                                   @NonNull final IRepoStorageContent aContent,
-                                   @NonNull final ErrorList aErrorList) throws IOException
-  {
-    LOGGER.info ("Checking content for" +
-                 (sContext == null ? "" : " '" + sContext + "' and") +
-                 " file extension '" +
-                 sFileExt +
-                 "'");
-    try
-    {
-      final IUploadContentValidatorSPI aValidator = _findValidator (sFileExt);
-      if (aValidator == null)
-        throw new IllegalArgumentException ("Unsupported file extension '" +
-                                            sFileExt +
-                                            "' - no SPI validator registered");
-
-      return aValidator.isValidContent (sFileExt, aContent.getBufferedInputStream (), aErrorList);
-    }
-    finally
-    {
-      LOGGER.info ("Finished checking content for" +
-                   (sContext == null ? "" : " '" + sContext + "' and") +
-                   " file extension '" +
-                   sFileExt +
-                   "'");
-    }
+    return m_aContentValidator;
   }
 
   @NonNull
@@ -159,7 +114,10 @@ public class ScubaUploader implements IScubaUploader
 
     final IRepoStorageContent aContent = new RepoStorageContentFromReadableResource (aPayload);
     final ErrorList aErrorList = new ErrorList ();
-    final boolean bValid = _isContentValid (null, _getFileExt (aPayload), aContent, aErrorList);
+    final boolean bValid = m_aContentValidator.validateContent ("",
+                                                                _getFileExt (aPayload),
+                                                                aContent.getBufferedInputStream (),
+                                                                aErrorList);
     if (!bValid)
       aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
     return EValidity.valueOf (bValid);
@@ -170,7 +128,10 @@ public class ScubaUploader implements IScubaUploader
                                 @NonNull @Nonempty final String sFileExt) throws IOException
   {
     final ErrorList aErrorList = new ErrorList ();
-    if (!_isContentValid (aCoordinate.getAsSingleID (), sFileExt, aContent, aErrorList))
+    if (!m_aContentValidator.validateContent (aCoordinate.getAsSingleID (),
+                                              sFileExt,
+                                              aContent.getBufferedInputStream (),
+                                              aErrorList))
     {
       // Log all collected errors
       aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
