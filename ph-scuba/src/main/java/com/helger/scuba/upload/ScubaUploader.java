@@ -34,24 +34,23 @@ import com.helger.collection.commons.CommonsArrayList;
 import com.helger.collection.commons.ICommonsList;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
-import com.helger.diver.repo.IRepoStorage;
 import com.helger.diver.repo.IRepoStorageContent;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.io.file.FilenameHelper;
 import com.helger.io.resource.IReadableResource;
-import com.helger.scuba.api.IUploader;
+import com.helger.scuba.api.IScubaUploader;
 import com.helger.scuba.api.repo.RepoKeyAlreadyInUseException;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
- * Default implementation of {@link IUploader}. Loads all {@link IUploadContentValidatorSPI}
+ * Default implementation of {@link IScubaUploader}. Loads all {@link IUploadContentValidatorSPI}
  * implementations via {@link ServiceLoader} and dispatches content validation by file extension
  * before upload.
  *
  * @author Philip Helger
  */
-public class ScubaUploader implements IUploader
+public class ScubaUploader implements IScubaUploader
 {
   private static final class RepoStorageContentFromReadableResource implements IRepoStorageContent
   {
@@ -95,15 +94,15 @@ public class ScubaUploader implements IUploader
     {
       aValidator.initRepoStorage (aRepo);
       m_aValidators.add (aValidator);
-      LOGGER.info ("Loaded upload content validator: " +
+      LOGGER.info ("Loaded upload content validator '" +
                    aValidator.getClass ().getName () +
-                   " for extensions " +
+                   "' for extensions " +
                    aValidator.getSupportedFileExtensions ());
     }
   }
 
   @NonNull
-  public IRepoStorage getRepoStorage ()
+  public IRepoStorageWithToc getRepoStorage ()
   {
     return m_aRepo;
   }

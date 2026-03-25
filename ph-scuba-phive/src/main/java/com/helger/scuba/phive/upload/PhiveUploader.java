@@ -56,7 +56,7 @@ import com.helger.scuba.upload.ScubaUploader;
  */
 public class PhiveUploader
 {
-  public static final String AUTHOR_SYSTEM = "scuba";
+  public static final String AUTHOR_SYSTEM = "ph-scuba-phive";
 
   private static final Logger LOGGER = LoggerFactory.getLogger (PhiveUploader.class);
   private final ScubaUploader m_aUploader;

@@ -163,8 +163,8 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
         for (final Object aEntry : aVes.getXsd ().getCatalog ().getPublicOrSystem ())
         {
           final VesResourceType aRes;
-          if (aEntry instanceof VesXsdCatalogItemPublicType)
-            aRes = ((VesXsdCatalogItemPublicType) aEntry).getResource ();
+          if (aEntry instanceof final VesXsdCatalogItemPublicType aPublic)
+            aRes = aPublic.getResource ();
           else
             aRes = ((VesXsdCatalogItemSystemType) aEntry).getResource ();
 

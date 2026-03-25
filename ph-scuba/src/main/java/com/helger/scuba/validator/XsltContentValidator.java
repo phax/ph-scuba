@@ -40,6 +40,8 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
 public final class XsltContentValidator implements IUploadContentValidatorSPI
 {
   public static final String FILE_EXT_XSLT = ".xslt";
+  private static final String EXPECTED_LOCAL_NAME = "stylesheet";
+  private static final String EXPECTED_NAMESPACE_URI = "http://www.w3.org/1999/XSL/Transform";
 
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
@@ -62,12 +64,11 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
 
     // Check root element
     final String sLocalName = XMLHelper.getLocalNameOrTagName (aDoc.getDocumentElement ());
-    final String sExpectedLocaleName = "stylesheet";
-    if (!sExpectedLocaleName.equals (sLocalName))
+    if (!EXPECTED_LOCAL_NAME.equals (sLocalName))
     {
       aErrorList.add (SingleError.builderError ()
                                  .errorText ("The root element name for XSLT must be '" +
-                                             sExpectedLocaleName +
+                                             EXPECTED_LOCAL_NAME +
                                              "' but is '" +
                                              sLocalName +
                                              "'")
@@ -76,12 +77,11 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
     }
 
     final String sNamespaceURI = aDoc.getDocumentElement ().getNamespaceURI ();
-    final String sExpectedNamespaceURI = "http://www.w3.org/1999/XSL/Transform";
-    if (!sExpectedNamespaceURI.equals (sNamespaceURI))
+    if (!EXPECTED_NAMESPACE_URI.equals (sNamespaceURI))
     {
       aErrorList.add (SingleError.builderError ()
                                  .errorText ("The root element namespace URI for XSLT must be '" +
-                                             sExpectedNamespaceURI +
+                                             EXPECTED_NAMESPACE_URI +
                                              "' but is '" +
                                              sNamespaceURI +
                                              "'")

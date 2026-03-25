@@ -42,6 +42,8 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
 public final class XsdContentValidator implements IUploadContentValidatorSPI
 {
   public static final String FILE_EXT_XSD = ".xsd";
+  private static final String EXPECTED_LOCAL_NAME = "schema";
+  private static final String EXPECTED_NAMESPACE_URI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
@@ -64,12 +66,11 @@ public final class XsdContentValidator implements IUploadContentValidatorSPI
 
     // Check root element
     final String sLocalName = XMLHelper.getLocalNameOrTagName (aDoc.getDocumentElement ());
-    final String sExpectedLocaleName = "schema";
-    if (!sExpectedLocaleName.equals (sLocalName))
+    if (!EXPECTED_LOCAL_NAME.equals (sLocalName))
     {
       aErrorList.add (SingleError.builderError ()
                                  .errorText ("The root element name for XSD must be '" +
-                                             sExpectedLocaleName +
+                                             EXPECTED_LOCAL_NAME +
                                              "' but is '" +
                                              sLocalName +
                                              "'")
@@ -78,12 +79,11 @@ public final class XsdContentValidator implements IUploadContentValidatorSPI
     }
 
     final String sNamespaceURI = aDoc.getDocumentElement ().getNamespaceURI ();
-    final String sExpectedNamespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
-    if (!sExpectedNamespaceURI.equals (sNamespaceURI))
+    if (!EXPECTED_NAMESPACE_URI.equals (sNamespaceURI))
     {
       aErrorList.add (SingleError.builderError ()
                                  .errorText ("The root element namespace URI for XSD must be '" +
-                                             sExpectedNamespaceURI +
+                                             EXPECTED_NAMESPACE_URI +
                                              "' but is '" +
                                              sNamespaceURI +
                                              "'")

@@ -49,7 +49,7 @@ public final class SPDXHelper
   @NonNull
   private static String _unify (@NonNull final String s)
   {
-    return s.toLowerCase (Locale.ROOT);
+    return s.toLowerCase (Locale.ROOT).trim ();
   }
 
   static

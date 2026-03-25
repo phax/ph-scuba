@@ -22,7 +22,7 @@ import org.jspecify.annotations.NonNull;
 
 import com.helger.base.state.EValidity;
 import com.helger.diver.api.coord.DVRCoordinate;
-import com.helger.diver.repo.IRepoStorage;
+import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.io.resource.IReadableResource;
 
 /**
@@ -30,13 +30,13 @@ import com.helger.io.resource.IReadableResource;
  *
  * @author Philip Helger
  */
-public interface IUploader
+public interface IScubaUploader
 {
   /**
    * @return The repository storage this uploader works on. Never <code>null</code>.
    */
   @NonNull
-  IRepoStorage getRepoStorage ();
+  IRepoStorageWithToc getRepoStorage ();
 
   /**
    * Check if the provided resource is valid for uploading. Performs the same content validation as

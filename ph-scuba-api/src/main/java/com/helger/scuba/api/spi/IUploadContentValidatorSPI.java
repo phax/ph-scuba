@@ -21,6 +21,8 @@ import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
 
+import com.helger.annotation.Nonempty;
+import com.helger.annotation.style.IsSPIInterface;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
@@ -32,6 +34,7 @@ import com.helger.diver.repo.toc.IRepoStorageWithToc;
  *
  * @author Philip Helger
  */
+@IsSPIInterface
 public interface IUploadContentValidatorSPI
 {
   /**
@@ -39,6 +42,7 @@ public interface IUploadContentValidatorSPI
    *         dot (e.g., ".xsd", ".sch"). Never <code>null</code> and never empty.
    */
   @NonNull
+  @Nonempty
   ICommonsSet <String> getSupportedFileExtensions ();
 
   /**
