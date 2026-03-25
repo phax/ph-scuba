@@ -27,6 +27,8 @@ import com.helger.base.io.stream.NullOutputStream;
 import com.helger.base.io.stream.StreamHelper;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
+import com.helger.diagnostics.error.SingleError;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
@@ -44,7 +46,9 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
     return new CommonsHashSet <> (FILE_EXT_ZIP);
   }
 
-  public boolean isValidContent (@NonNull final String sFileExt, @NonNull final InputStream aIS) throws IOException
+  public boolean isValidContent (@NonNull final String sFileExt,
+                                 @NonNull final InputStream aIS,
+                                 @NonNull final ErrorList aErrorList) throws IOException
   {
     try (final ZipInputStream aZIPIS = new ZipInputStream (aIS))
     {
@@ -53,6 +57,7 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
       {
         if (!aZipEntry.isDirectory ())
         {
+          // TODO how to provide recursive validation
           if (StreamHelper.copyByteStream ()
                           .from (aZIPIS)
                           .closeFrom (false)
@@ -60,7 +65,12 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
                           .closeTo (false)
                           .build ()
                           .isFailure ())
+          {
+            aErrorList.add (SingleError.builderError ()
+                                       .errorText ("Failed to read ZIP entry '" + aZipEntry.getName () + "'")
+                                       .build ());
             return false;
+          }
         }
       }
     }

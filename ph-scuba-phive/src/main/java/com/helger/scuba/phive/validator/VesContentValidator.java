@@ -19,12 +19,11 @@ package com.helger.scuba.phive.validator;
 import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
+import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.api.version.DVRVersion;
@@ -45,16 +44,13 @@ import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.scuba.phive.codelists.SPDXHelper;
 
 /**
- * Content validator for VES definition files (.ves). Validates JAXB
- * unmarshalling, SPDX licenses, requirement resolution, and XSD catalog
- * entries.
+ * Content validator for VES definition files (.ves). Validates JAXB unmarshalling, SPDX licenses,
+ * requirement resolution, and XSD catalog entries.
  *
  * @author Philip Helger
  */
 public final class VesContentValidator implements IUploadContentValidatorSPI
 {
-  private static final Logger LOGGER = LoggerFactory.getLogger (VesContentValidator.class);
-
   private IRepoStorageWithToc m_aRepo;
 
   @NonNull
@@ -69,12 +65,14 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
     m_aRepo = aRepo;
   }
 
-  public boolean isValidContent (@NonNull final String sFileExt, @NonNull final InputStream aIS)
+  public boolean isValidContent (@NonNull final String sFileExt,
+                                 @NonNull final InputStream aIS,
+                                 @NonNull final ErrorList aErrorList)
   {
     final VesType aVes = new VES1Marshaller ().read (aIS);
     if (aVes == null)
     {
-      LOGGER.error ("Failed to read payload as VES - XSD error");
+      aErrorList.add (SingleError.builderError ().errorText ("Failed to read payload as VES - XSD error").build ());
       return false;
     }
 
@@ -88,16 +86,20 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
         {
           if (!SPDXHelper.isSpdxIDValid (sID))
           {
-            LOGGER.error ("The license SPDX Id '" +
-                          sID +
-                          "' is not contained in SPDX list version " +
-                          SPDXHelper.getListVersion ());
+            aErrorList.add (SingleError.builderError ()
+                                       .errorText ("The license SPDX Id '" +
+                                                   sID +
+                                                   "' is not contained in SPDX list version " +
+                                                   SPDXHelper.getListVersion ())
+                                       .build ());
             return false;
           }
 
           if (!aUniqueIDs.add (sID))
           {
-            LOGGER.error ("The license SPDX ID '" + sID + "' is contained more then once");
+            aErrorList.add (SingleError.builderError ()
+                                       .errorText ("The license SPDX ID '" + sID + "' is contained more then once")
+                                       .build ());
             return false;
           }
         }
@@ -105,7 +107,7 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
         final String sName = StringHelper.trim (aLicence.getValue ());
         if (StringHelper.isEmpty (sName))
         {
-          LOGGER.error ("The license name is missing");
+          aErrorList.add (SingleError.builderError ().errorText ("The license name is missing").build ());
           return false;
         }
 
@@ -114,34 +116,44 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
         {
           if (StringHelper.isNotEmpty (sID) && !aAllowedIDs.contains (sID))
           {
-            LOGGER.error ("The license SPDX ID '" +
-                          sID +
-                          "' does not match to the name '" +
-                          sName +
-                          "'. Matching IDs to that name are: " +
-                          aAllowedIDs);
+            aErrorList.add (SingleError.builderError ()
+                                       .errorText ("The license SPDX ID '" +
+                                                   sID +
+                                                   "' does not match to the name '" +
+                                                   sName +
+                                                   "'. Matching IDs to that name are: " +
+                                                   aAllowedIDs)
+                                       .build ());
             return false;
           }
         }
         else
         {
           // Warning only
-          LOGGER.warn ("The contained license name '" + sName + "' is not contained in the SPDX license list");
+          aErrorList.add (SingleError.builderWarn ()
+                                     .errorText ("The contained license name '" +
+                                                 sName +
+                                                 "' is not contained in the SPDX license list")
+                                     .build ());
         }
       }
     }
 
     // VES loader checks, that any required artefact is present as well
-    final ErrorList aErrorList = new ErrorList ();
+    final ErrorList aVESErrorList = new ErrorList ();
     final LoadedVES aLoadedVES = new VESLoader (m_aRepo).setUseEagerRequirementLoading (true)
                                                         .convertToLoadedVES (ValidationExecutorSetStatus.createValidNow (),
                                                                              aVes,
                                                                              new VESLoaderStatus (),
-                                                                             aErrorList);
+                                                                             aVESErrorList);
     if (aLoadedVES == null)
     {
-      aErrorList.getAllErrors ()
-                .forEach (x -> LOGGER.error ("VES validation error: " + x.getAsStringLocaleIndepdent ()));
+      // Transfer VES loader errors to our error list
+      aVESErrorList.getAllErrors ()
+                   .forEach (x -> aErrorList.add (SingleError.builderError ()
+                                                             .errorText ("VES validation error: " +
+                                                                         x.getAsStringLocaleIndepdent ())
+                                                             .build ()));
       return false;
     }
 
@@ -163,11 +175,13 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
           // XSD Catalogue can only reference XSD stuff
           if (!m_aRepo.exists (RepoStorageKeyOfArtefact.of (aVESID, DefaultVESLoaderXSD.FILE_EXT_XSD)))
           {
-            LOGGER.error ("Catalog entry '" +
-                          aVESID.getAsSingleID () +
-                          "' with file ext '" +
-                          DefaultVESLoaderXSD.FILE_EXT_XSD +
-                          "' does not exist");
+            aErrorList.add (SingleError.builderError ()
+                                       .errorText ("Catalog entry '" +
+                                                   aVESID.getAsSingleID () +
+                                                   "' with file ext '" +
+                                                   DefaultVESLoaderXSD.FILE_EXT_XSD +
+                                                   "' does not exist")
+                                       .build ());
             return false;
           }
         }

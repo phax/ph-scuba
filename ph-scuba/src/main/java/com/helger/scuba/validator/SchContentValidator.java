@@ -22,8 +22,12 @@ import org.jspecify.annotations.NonNull;
 
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
+import com.helger.diagnostics.error.SingleError;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
+import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
 import com.helger.xml.serialize.read.DOMReader;
+import com.helger.xml.serialize.read.DOMReaderSettings;
 
 /**
  * Content validator for Schematron files (.sch). Checks XML well-formedness.
@@ -40,8 +44,17 @@ public final class SchContentValidator implements IUploadContentValidatorSPI
     return new CommonsHashSet <> (FILE_EXT_SCH);
   }
 
-  public boolean isValidContent (@NonNull final String sFileExt, @NonNull final InputStream aIS)
+  public boolean isValidContent (@NonNull final String sFileExt,
+                                 @NonNull final InputStream aIS,
+                                 @NonNull final ErrorList aErrorList)
   {
-    return DOMReader.readXMLDOM (aIS) != null;
+    if (DOMReader.readXMLDOM (aIS,
+                              new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList))) ==
+        null)
+    {
+      aErrorList.add (SingleError.builderError ().errorText ("Failed to parse Schematron as valid XML").build ());
+      return false;
+    }
+    return true;
   }
 }

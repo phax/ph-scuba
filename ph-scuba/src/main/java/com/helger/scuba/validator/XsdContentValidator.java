@@ -21,19 +21,21 @@ import java.io.InputStream;
 import javax.xml.XMLConstants;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
+import com.helger.diagnostics.error.SingleError;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.xml.XMLHelper;
+import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
 import com.helger.xml.serialize.read.DOMReader;
+import com.helger.xml.serialize.read.DOMReaderSettings;
 
 /**
- * Content validator for XML Schema files (.xsd). Checks XML well-formedness and
- * verifies root element is {@code schema} in the W3C XML Schema namespace.
+ * Content validator for XML Schema files (.xsd). Checks XML well-formedness and verifies root
+ * element is {@code schema} in the W3C XML Schema namespace.
  *
  * @author Philip Helger
  */
@@ -41,27 +43,37 @@ public final class XsdContentValidator implements IUploadContentValidatorSPI
 {
   public static final String FILE_EXT_XSD = ".xsd";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger (XsdContentValidator.class);
-
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
   {
     return new CommonsHashSet <> (FILE_EXT_XSD);
   }
 
-  public boolean isValidContent (@NonNull final String sFileExt, @NonNull final InputStream aIS)
+  public boolean isValidContent (@NonNull final String sFileExt,
+                                 @NonNull final InputStream aIS,
+                                 @NonNull final ErrorList aErrorList)
   {
     // Check well-formedness
-    final Document aDoc = DOMReader.readXMLDOM (aIS);
+    final Document aDoc = DOMReader.readXMLDOM (aIS,
+                                                new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList)));
     if (aDoc == null || aDoc.getDocumentElement () == null)
+    {
+      aErrorList.add (SingleError.builderError ().errorText ("Failed to parse XSD as valid XML").build ());
       return false;
+    }
 
     // Check root element
     final String sLocalName = XMLHelper.getLocalNameOrTagName (aDoc.getDocumentElement ());
     final String sExpectedLocaleName = "schema";
     if (!sExpectedLocaleName.equals (sLocalName))
     {
-      LOGGER.error ("The root element name for XSD must be '" + sExpectedLocaleName + "'");
+      aErrorList.add (SingleError.builderError ()
+                                 .errorText ("The root element name for XSD must be '" +
+                                             sExpectedLocaleName +
+                                             "' but is '" +
+                                             sLocalName +
+                                             "'")
+                                 .build ());
       return false;
     }
 
@@ -69,7 +81,13 @@ public final class XsdContentValidator implements IUploadContentValidatorSPI
     final String sExpectedNamespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
     if (!sExpectedNamespaceURI.equals (sNamespaceURI))
     {
-      LOGGER.error ("The root element namespace URI for XSD must be '" + sExpectedNamespaceURI + "'");
+      aErrorList.add (SingleError.builderError ()
+                                 .errorText ("The root element namespace URI for XSD must be '" +
+                                             sExpectedNamespaceURI +
+                                             "' but is '" +
+                                             sNamespaceURI +
+                                             "'")
+                                 .build ());
       return false;
     }
 

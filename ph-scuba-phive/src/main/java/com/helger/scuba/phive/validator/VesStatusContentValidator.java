@@ -19,12 +19,12 @@ package com.helger.scuba.phive.validator;
 import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
+import com.helger.diagnostics.error.SingleError;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.api.version.DVRVersion;
 import com.helger.diver.repo.RepoStorageKey;
@@ -37,15 +37,13 @@ import com.helger.phive.ves.v10.VesStatusType;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
- * Content validator for VES status files (.status). Validates JAXB
- * unmarshalling, deprecation consistency, and replacement VESID existence.
+ * Content validator for VES status files (.status). Validates JAXB unmarshalling, deprecation
+ * consistency, and replacement VESID existence.
  *
  * @author Philip Helger
  */
 public final class VesStatusContentValidator implements IUploadContentValidatorSPI
 {
-  private static final Logger LOGGER = LoggerFactory.getLogger (VesStatusContentValidator.class);
-
   private IRepoStorageWithToc m_aRepo;
 
   @NonNull
@@ -60,19 +58,25 @@ public final class VesStatusContentValidator implements IUploadContentValidatorS
     m_aRepo = aRepo;
   }
 
-  public boolean isValidContent (@NonNull final String sFileExt, @NonNull final InputStream aIS)
+  public boolean isValidContent (@NonNull final String sFileExt,
+                                 @NonNull final InputStream aIS,
+                                 @NonNull final ErrorList aErrorList)
   {
     final VesStatusType aStatus = new VESStatus1Marshaller ().read (aIS);
     if (aStatus == null)
     {
-      LOGGER.error ("Failed to read payload as VES Status - XSD error");
+      aErrorList.add (SingleError.builderError ()
+                                 .errorText ("Failed to read payload as VES Status - XSD error")
+                                 .build ());
       return false;
     }
 
     final boolean bIsDeprecated = aStatus.isDeprecated () != null && aStatus.isDeprecated ().booleanValue ();
     if (StringHelper.isNotEmpty (aStatus.getDeprecationReason ()) && !bIsDeprecated)
     {
-      LOGGER.error ("A deprecation reason might only be provided if deprecation is enabled");
+      aErrorList.add (SingleError.builderError ()
+                                 .errorText ("A deprecation reason might only be provided if deprecation is enabled")
+                                 .build ());
       return false;
     }
 
@@ -86,9 +90,11 @@ public final class VesStatusContentValidator implements IUploadContentValidatorS
       final RepoStorageKey aKey = RepoStorageKeyOfArtefact.of (aReplVESID, VESLoader.FILE_EXT_VES);
       if (!m_aRepo.exists (aKey))
       {
-        LOGGER.error ("Failed to resolve the replacement VESID '" +
-                      aReplVESID.getAsSingleID () +
-                      "' in the repository");
+        aErrorList.add (SingleError.builderError ()
+                                   .errorText ("Failed to resolve the replacement VESID '" +
+                                               aReplVESID.getAsSingleID () +
+                                               "' in the repository")
+                                   .build ());
         return false;
       }
     }

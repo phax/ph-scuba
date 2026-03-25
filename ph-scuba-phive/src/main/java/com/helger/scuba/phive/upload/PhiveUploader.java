@@ -49,9 +49,8 @@ import com.helger.phive.ves.v10.VesType;
 import com.helger.scuba.upload.ScubaUploader;
 
 /**
- * Phive-specific upload convenience methods for VES and VESStatus artifacts.
- * Wraps a {@link ScubaUploader} and adds domain-specific upload logic ported
- * from {@code CentralUploader}.
+ * Phive-specific upload convenience methods for VES and VESStatus artifacts. Wraps a
+ * {@link ScubaUploader} and adds domain-specific upload logic ported from {@code CentralUploader}.
  *
  * @author Philip Helger
  */
@@ -88,8 +87,8 @@ public class PhiveUploader
 
     // Take VESID from the inside
     m_aUploader.uploadResource (new DVRCoordinate (aVes.getGroupId (),
-                                                    aVes.getArtifactId (),
-                                                    DVRVersion.parseOrNull (aVes.getVersion ())),
+                                                   aVes.getArtifactId (),
+                                                   DVRVersion.parseOrNull (aVes.getVersion ())),
                                 RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VES1Marshaller ()).getAsBytes (aVes)),
                                 VESLoader.FILE_EXT_VES);
   }
@@ -99,8 +98,8 @@ public class PhiveUploader
     ValueEnforcer.notNull (aVESStatus, "VESStatus");
 
     m_aUploader.uploadResource (new DVRCoordinate (aVESStatus.getGroupId (),
-                                                    aVESStatus.getArtifactId (),
-                                                    DVRVersion.parseOrNull (aVESStatus.getVersion ())),
+                                                   aVESStatus.getArtifactId (),
+                                                   DVRVersion.parseOrNull (aVESStatus.getVersion ())),
                                 RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VESStatus1Marshaller ()).getAsBytes (aVESStatus)),
                                 VESLoader.FILE_EXT_STATUS);
   }
@@ -174,8 +173,7 @@ public class PhiveUploader
   }
 
   @NonNull
-  public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID,
-                                   @Nullable final String sDeprecationReason)
+  public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID, @Nullable final String sDeprecationReason)
   {
     return setVESDeprecated (aVESID, sDeprecationReason, (DVRCoordinate) null);
   }

@@ -32,6 +32,7 @@ import com.helger.base.state.EValidity;
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsArrayList;
 import com.helger.collection.commons.ICommonsList;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.IRepoStorage;
 import com.helger.diver.repo.IRepoStorageContent;
@@ -44,9 +45,9 @@ import com.helger.scuba.api.repo.RepoKeyAlreadyInUseException;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
- * Default implementation of {@link IUploader}. Loads all
- * {@link IUploadContentValidatorSPI} implementations via {@link ServiceLoader}
- * and dispatches content validation by file extension before upload.
+ * Default implementation of {@link IUploader}. Loads all {@link IUploadContentValidatorSPI}
+ * implementations via {@link ServiceLoader} and dispatches content validation by file extension
+ * before upload.
  *
  * @author Philip Helger
  */
@@ -118,7 +119,8 @@ public class ScubaUploader implements IUploader
 
   private boolean _isContentValid (@Nullable final String sContext,
                                    @NonNull final String sFileExt,
-                                   @NonNull final IRepoStorageContent aContent) throws IOException
+                                   @NonNull final IRepoStorageContent aContent,
+                                   @NonNull final ErrorList aErrorList) throws IOException
   {
     LOGGER.info ("Checking content for" +
                  (sContext == null ? "" : " '" + sContext + "' and") +
@@ -129,9 +131,11 @@ public class ScubaUploader implements IUploader
     {
       final IUploadContentValidatorSPI aValidator = _findValidator (sFileExt);
       if (aValidator == null)
-        throw new IllegalArgumentException ("Unsupported file extension '" + sFileExt + "' - no SPI validator registered");
+        throw new IllegalArgumentException ("Unsupported file extension '" +
+                                            sFileExt +
+                                            "' - no SPI validator registered");
 
-      return aValidator.isValidContent (sFileExt, aContent.getBufferedInputStream ());
+      return aValidator.isValidContent (sFileExt, aContent.getBufferedInputStream (), aErrorList);
     }
     finally
     {
@@ -155,19 +159,28 @@ public class ScubaUploader implements IUploader
     ValueEnforcer.notNull (aPayload, "Payload");
 
     final IRepoStorageContent aContent = new RepoStorageContentFromReadableResource (aPayload);
-    return EValidity.valueOf (_isContentValid (null, _getFileExt (aPayload), aContent));
+    final ErrorList aErrorList = new ErrorList ();
+    final boolean bValid = _isContentValid (null, _getFileExt (aPayload), aContent, aErrorList);
+    if (!bValid)
+      aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
+    return EValidity.valueOf (bValid);
   }
 
   private void _uploadResource (@NonNull final DVRCoordinate aCoordinate,
                                 @NonNull final IRepoStorageContent aContent,
                                 @NonNull @Nonempty final String sFileExt) throws IOException
   {
-    if (!_isContentValid (aCoordinate.getAsSingleID (), sFileExt, aContent))
+    final ErrorList aErrorList = new ErrorList ();
+    if (!_isContentValid (aCoordinate.getAsSingleID (), sFileExt, aContent, aErrorList))
+    {
+      // Log all collected errors
+      aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
       throw new IllegalStateException ("Data for coordinate '" +
                                        aCoordinate.getAsSingleID () +
                                        "' does not match expectations of the file extension ('" +
                                        sFileExt +
                                        "') - see log for details");
+    }
 
     // Create StorageKey
     final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, sFileExt);
@@ -181,8 +194,8 @@ public class ScubaUploader implements IUploader
       throw new IllegalStateException ("Failed to write");
   }
 
-  public void addResource (@NonNull final DVRCoordinate aCoordinate,
-                           @NonNull final IReadableResource aPayload) throws IOException
+  public void addResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final IReadableResource aPayload)
+                                                                                                                throws IOException
   {
     ValueEnforcer.notNull (aCoordinate, "Coordinate");
     ValueEnforcer.notNull (aPayload, "Payload");
@@ -195,17 +208,15 @@ public class ScubaUploader implements IUploader
   }
 
   /**
-   * Upload content directly with a specific file extension. Used by
-   * domain-specific uploaders (e.g., ph-scuba-phive) that marshal objects to
-   * bytes before uploading.
+   * Upload content directly with a specific file extension. Used by domain-specific uploaders
+   * (e.g., ph-scuba-phive) that marshal objects to bytes before uploading.
    *
    * @param aCoordinate
    *        The DVR coordinate. May not be <code>null</code>.
    * @param aContent
    *        The content to upload. May not be <code>null</code>.
    * @param sFileExt
-   *        The file extension including the leading dot. May not be
-   *        <code>null</code>.
+   *        The file extension including the leading dot. May not be <code>null</code>.
    * @throws IOException
    *         On IO error
    */
@@ -219,15 +230,13 @@ public class ScubaUploader implements IUploader
     _uploadResource (aCoordinate, aContent, sFileExt);
   }
 
-  public boolean existsResource (@NonNull final DVRCoordinate aCoordinate,
-                                 @NonNull final String sFileExt)
+  public boolean existsResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final String sFileExt)
   {
     final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, sFileExt);
     return m_aRepo.exists (aKey);
   }
 
-  public void deleteResource (@NonNull final DVRCoordinate aCoordinate,
-                              @NonNull final String sFileExt)
+  public void deleteResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final String sFileExt)
   {
     // Create StorageKey (must start with '.')
     final String sRealFileExt = StringHelper.startsWith (sFileExt, '.') ? sFileExt : '.' + sFileExt;
@@ -239,8 +248,7 @@ public class ScubaUploader implements IUploader
   }
 
   /**
-   * @return The underlying repository storage with ToC support. Never
-   *         <code>null</code>.
+   * @return The underlying repository storage with ToC support. Never <code>null</code>.
    */
   @NonNull
   public IRepoStorageWithToc getRepoStorageWithToc ()

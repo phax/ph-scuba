@@ -33,16 +33,14 @@ import com.helger.io.resource.IReadableResource;
 public interface IUploader
 {
   /**
-   * @return The repository storage this uploader works on. Never
-   *         <code>null</code>.
+   * @return The repository storage this uploader works on. Never <code>null</code>.
    */
   @NonNull
   IRepoStorage getRepoStorage ();
 
   /**
-   * Check if the provided resource is valid for uploading. Performs the same
-   * content validation as {@link #addResource(DVRCoordinate, IReadableResource)}
-   * but without actually uploading.
+   * Check if the provided resource is valid for uploading. Performs the same content validation as
+   * {@link #addResource(DVRCoordinate, IReadableResource)} but without actually uploading.
    *
    * @param aPayload
    *        The payload to check. May not be <code>null</code>.
@@ -54,9 +52,9 @@ public interface IUploader
   EValidity isValidResource (@NonNull IReadableResource aPayload) throws IOException;
 
   /**
-   * Upload a single artifact to the repository with the provided coordinates.
-   * The content is validated before upload based on the file extension. The file
-   * extension is extracted from the resource path.
+   * Upload a single artifact to the repository with the provided coordinates. The content is
+   * validated before upload based on the file extension. The file extension is extracted from the
+   * resource path.
    *
    * @param aCoordinate
    *        The DVR coordinate to upload to. May not be <code>null</code>.
@@ -73,8 +71,7 @@ public interface IUploader
    * @param aCoordinate
    *        The DVR coordinate. May not be <code>null</code>.
    * @param sFileExt
-   *        The file extension including the leading dot. May not be
-   *        <code>null</code>.
+   *        The file extension including the leading dot. May not be <code>null</code>.
    * @return {@code true} if the resource exists, {@code false} otherwise.
    */
   boolean existsResource (@NonNull DVRCoordinate aCoordinate, @NonNull String sFileExt);
@@ -85,8 +82,7 @@ public interface IUploader
    * @param aCoordinate
    *        The DVR coordinate. May not be <code>null</code>.
    * @param sFileExt
-   *        The file extension including the leading dot. May not be
-   *        <code>null</code>.
+   *        The file extension including the leading dot. May not be <code>null</code>.
    * @throws IOException
    *         On IO error
    */
