@@ -82,7 +82,7 @@ public final class UploadContentValidatorTest
                                              aErrors));
     assertFalse (aErrors.isEmpty ());
     // Verify context path is in the error message
-    assertTrue (aErrors.getFirst ().getErrorText (Locale.ROOT).startsWith ("my-artifact: "));
+    assertTrue (aErrors.getFirstOrNull ().getErrorText (Locale.ROOT).startsWith ("my-artifact: "));
   }
 
   @Test
@@ -126,6 +126,6 @@ public final class UploadContentValidatorTest
     assertFalse (aValidator.validateContent ("", ".zip", baos.getAsInputStream (), aErrors));
     assertFalse (aErrors.isEmpty ());
     // Error should contain the ZIP entry path context
-    assertTrue (aErrors.getFirst ().getErrorText (Locale.ROOT).contains ("bad.xsd"));
+    assertTrue (aErrors.getFirstOrNull ().getErrorText (Locale.ROOT).contains ("bad.xsd"));
   }
 }
