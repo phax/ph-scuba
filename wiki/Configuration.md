@@ -53,6 +53,5 @@ The uploader supports configuration options such as:
 | Overwrite existing | `false` | Whether to allow overwriting existing artifacts |
 | Verify hash on read | `true` | Verify SHA-256 on read-back |
 | Normalize newlines | `true` | Convert XML content to UNIX newlines before upload |
-| Validators | (built-in) | List of `IUploadValidator` instances, dispatched by file extension |
-| Auditors | (none) | List of `IUploadAuditor` instances to notify |
+| Validators | (built-in) | `IUploadContentValidatorSPI` implementations, discovered via SPI and dispatched by file extension |
 

@@ -18,7 +18,7 @@ SCUBA follows the conventions established across the ph-* ecosystem:
 
 ### Code Style
 - Package root: `com.helger.scuba`
-- Interfaces prefixed with `I` (e.g., `IUploader`)
+- Interfaces prefixed with `I` (e.g., `IScubaUploader`)
 - Constants classes prefixed with `C` (e.g., `CScuba`)
 - Enum classes prefixed with `E` (e.g., `EUploadResult`)
 - Null safety via JSpecify annotations (`@NonNull`, `@Nullable`)

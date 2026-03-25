@@ -54,10 +54,6 @@ After content validation passes, the core checks whether a resource with the sam
 4. A `.sha256` hash file is written alongside the artifact
 5. The repository ToC is updated (via `RepoTopTocAuditor`)
 
-### 5. Audit
-
-Upload events are dispatched to registered `IUploadAuditor` instances for logging, metrics, or external notification.
-
 ## VES-Specific Workflows (ph-scuba-phive)
 
 ### Upload VES

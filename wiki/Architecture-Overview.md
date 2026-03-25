@@ -10,26 +10,26 @@
 ## High-Level Architecture
 
 ```
-     ┌─────────────────────┐      ┌──────────────────────┐
+     ┌──────────────────────┐      ┌───────────────────────┐
      │   ph-scuba           │      │   ph-scuba-phive      │
      │   (Core upload logic,│      │   (VES/VESStatus      │
-     │    SPI loading,      │      │    content validators  │
+     │    SPI loading,      │      │    content validators │
      │    .xsd/.sch/.xslt/  │      │    via SPI)           │
-     │    .zip validators)  │      └──────────┬───────────┘
-     └──────────┬──────────┘                  │
+     │    .zip validators)  │      └──────────┬────────────┘
+     └──────────┬───────────┘                 │
                 │                             ▼
                 ▼                  ┌──────────────────────┐
-     ┌─────────────────────┐      │   phive-ves-model     │
-     │   ph-scuba-api       │      │   phive-ves-engine    │
-     │   (IUploader,        │      │   phive-api           │
+     ┌──────────────────────┐      │   phive-ves-model    │
+     │   ph-scuba-api       │      │   phive-ves-engine   │
+     │   (IScubaUploader,   │      │   phive-api          │
      │    IUploadContent-   │      └──────────────────────┘
      │    ValidatorSPI)     │
-     └──────────┬──────────┘
+     └──────────┬───────────┘
                 │
                 ▼
      ┌─────────────────────────────────────────┐
-     │              ph-diver                    │
-     │  (DVR Coordinates, Repository Storage)   │
+     │              ph-diver                   │
+     │  (DVR Coordinates, Repository Storage)  │
      │  ┌──────────┬───────────┬──────────┐    │
      │  │   FS     │   HTTP    │   S3     │    │
      │  └──────────┴───────────┴──────────┘    │
@@ -55,7 +55,7 @@ This replaces the hard-coded `switch` statement in `CentralUploader._isContentVa
 SCUBA builds **on top of** ph-diver:
 
 - **ph-diver** provides the storage abstraction (`IRepoStorage`), coordinate system (`DVRCoordinate`), and backend implementations.
-- **SCUBA** adds the upload pipeline layer: content validation, pre-upload checks, audit logging, and a high-level upload API.
+- **SCUBA** adds the upload pipeline layer: content validation via SPI, pre-upload checks, and a high-level upload API.
 
 ph-diver owns "how to store", SCUBA owns "how to upload safely".
 

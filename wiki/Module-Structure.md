@@ -18,8 +18,7 @@ scuba (parent POM)
 The API module defines interfaces and value types with **no implementation dependencies**.
 
 **Key responsibilities:**
-- Generic upload interface (`IUploader`) - abstract contract for uploading artifacts
-- Audit interface (`IUploadAuditor`) - upload event notifications
+- Generic upload interface (`IScubaUploader`) - abstract contract for uploading artifacts
 - **Content validation SPI** - a Java `ServiceLoader` interface (`IUploadContentValidatorSPI`) that allows modules to register content validators for specific file extensions
 
 **Content Validation SPI:**
