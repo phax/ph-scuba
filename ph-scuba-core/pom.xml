@@ -24,9 +24,9 @@
     <artifactId>scuba-parent-pom</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>ph-scuba</artifactId>
+  <artifactId>ph-scuba-core</artifactId>
   <packaging>jar</packaging>
-  <name>ph-scuba</name>
+  <name>ph-scuba-core</name>
   <description>SCUBA - Main business logic and upload pipeline</description>
   <inceptionYear>2026</inceptionYear>
 

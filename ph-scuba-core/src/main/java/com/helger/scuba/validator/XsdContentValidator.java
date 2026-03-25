@@ -18,6 +18,8 @@ package com.helger.scuba.validator;
 
 import java.io.InputStream;
 
+import javax.xml.XMLConstants;
+
 import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 
@@ -25,6 +27,7 @@ import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.xml.XMLHelper;
 import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
@@ -32,21 +35,22 @@ import com.helger.xml.serialize.read.DOMReader;
 import com.helger.xml.serialize.read.DOMReaderSettings;
 
 /**
- * Content validator for XSLT files (.xslt). Checks XML well-formedness and verifies root element is
- * {@code stylesheet} in the XSL Transform namespace.
+ * Content validator for XML Schema files (.xsd). Checks XML well-formedness and verifies root
+ * element is {@code schema} in the W3C XML Schema namespace.
  *
  * @author Philip Helger
  */
-public final class XsltContentValidator implements IUploadContentValidatorSPI
+@IsSPIImplementation
+public final class XsdContentValidator implements IUploadContentValidatorSPI
 {
-  public static final String FILE_EXT_XSLT = ".xslt";
-  private static final String EXPECTED_LOCAL_NAME = "stylesheet";
-  private static final String EXPECTED_NAMESPACE_URI = "http://www.w3.org/1999/XSL/Transform";
+  public static final String FILE_EXT_XSD = ".xsd";
+  private static final String EXPECTED_LOCAL_NAME = "schema";
+  private static final String EXPECTED_NAMESPACE_URI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
   {
-    return new CommonsHashSet <> (FILE_EXT_XSLT);
+    return new CommonsHashSet <> (FILE_EXT_XSD);
   }
 
   public boolean isValidContent (@NonNull final String sFileExt,
@@ -58,7 +62,7 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
                                                 new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList)));
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
-      aErrorList.add (SingleError.builderError ().errorText ("Failed to parse XSLT as valid XML").build ());
+      aErrorList.add (SingleError.builderError ().errorText ("Failed to parse XSD as valid XML").build ());
       return false;
     }
 
@@ -67,7 +71,7 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
     if (!EXPECTED_LOCAL_NAME.equals (sLocalName))
     {
       aErrorList.add (SingleError.builderError ()
-                                 .errorText ("The root element name for XSLT must be '" +
+                                 .errorText ("The root element name for XSD must be '" +
                                              EXPECTED_LOCAL_NAME +
                                              "' but is '" +
                                              sLocalName +
@@ -80,7 +84,7 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
     if (!EXPECTED_NAMESPACE_URI.equals (sNamespaceURI))
     {
       aErrorList.add (SingleError.builderError ()
-                                 .errorText ("The root element namespace URI for XSLT must be '" +
+                                 .errorText ("The root element namespace URI for XSD must be '" +
                                              EXPECTED_NAMESPACE_URI +
                                              "' but is '" +
                                              sNamespaceURI +

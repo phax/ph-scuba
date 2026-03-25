@@ -7,7 +7,7 @@ SCUBA follows the established ph-* Maven multi-module pattern.
 ```
 scuba (parent POM)
 ├── ph-scuba-api           Generic upload and content validation API (incl. SPI)
-├── ph-scuba               Main business logic (upload pipeline)
+├── ph-scuba-core             Main business logic (upload pipeline)
 └── ph-scuba-phive         Phive-specific content validators and VES upload logic
 ```
 
@@ -124,7 +124,7 @@ This module exists as a separate submodule because the VES and VESStatus validat
 
 **Dependencies:**
 - `ph-scuba-api` (SPI interface)
-- `ph-scuba` (core upload logic)
+- `ph-scuba-core` (core upload logic)
 - `phive-ves-model` - for `VES1Marshaller`, `VESStatus1Marshaller`, JAXB types (`VesType`, `VesStatusType`)
 - `phive-ves-engine` - for `VESLoader`, `DefaultVESLoaderXSD`, `DefaultVESLoaderSchematron`
 - `phive-api` - for `IValidationExecutorSetStatus`, `ValidationExecutorSetStatus`
@@ -137,7 +137,7 @@ This module exists as a separate submodule because the VES and VESStatus validat
 ph-diver-api ◄──── ph-scuba-api (defines IUploadContentValidatorSPI)
                         ▲
                         │
-ph-diver-repo ◄─── ph-scuba (core: loads SPI, built-in .xsd/.sch/.xslt/.zip validators)
+ph-diver-repo ◄─── ph-scuba-core (core: loads SPI, built-in .xsd/.sch/.xslt/.zip validators)
 ph-xml ◄───────┘        ▲
                         │
                   ph-scuba-phive

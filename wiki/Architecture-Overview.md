@@ -44,10 +44,10 @@ This replaces the hard-coded `switch` statement in `CentralUploader._isContentVa
 
 1. `ph-scuba-api` defines the SPI interface
 2. Modules register implementations via `META-INF/services`
-3. `ph-scuba` (core) loads all SPI implementations at startup and dispatches validation by file extension
+3. `ph-scuba-core` loads all SPI implementations at startup and dispatches validation by file extension
 4. No compile-time dependency from API or core to specific validators
 
-**Built-in validators** (in `ph-scuba`): `.xsd`, `.sch`, `.xslt`, `.zip`
+**Built-in validators** (in `ph-scuba-core`): `.xsd`, `.sch`, `.xslt`, `.zip`
 **Phive validators** (in `ph-scuba-phive`): `.ves`, `.status`
 
 ## Relationship to ph-diver

@@ -40,6 +40,7 @@ import com.helger.phive.ves.v10.VesResourceType;
 import com.helger.phive.ves.v10.VesType;
 import com.helger.phive.ves.v10.VesXsdCatalogItemPublicType;
 import com.helger.phive.ves.v10.VesXsdCatalogItemSystemType;
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.scuba.phive.codelists.SPDXHelper;
 
@@ -49,6 +50,7 @@ import com.helger.scuba.phive.codelists.SPDXHelper;
  *
  * @author Philip Helger
  */
+@IsSPIImplementation
 public final class VesContentValidator implements IUploadContentValidatorSPI
 {
   private IRepoStorageWithToc m_aRepo;

@@ -45,7 +45,7 @@
     </dependency>
     <dependency>
       <groupId>com.helger.scuba</groupId>
-      <artifactId>ph-scuba</artifactId>
+      <artifactId>ph-scuba-core</artifactId>
     </dependency>
     <dependency>
       <groupId>com.helger.phive</groupId>

@@ -27,16 +27,16 @@ The caller provides:
 
 ### 2. Validate Content (Pre-Upload)
 
-The core module (`ph-scuba`) loads all `IUploadContentValidatorSPI` implementations via `ServiceLoader` and finds the validator that handles the artifact's file extension.
+The core module (`ph-scuba-core`) loads all `IUploadContentValidatorSPI` implementations via `ServiceLoader` and finds the validator that handles the artifact's file extension.
 
 **Validator dispatch** (replaces the `switch` in `CentralUploader._isContentValid()`):
 
 | Extension | Validator | Module | What it checks |
 |-----------|-----------|--------|----------------|
-| `.xsd` | `XsdContentValidator` | ph-scuba | XML well-formedness, root element `schema` in W3C XSD namespace |
-| `.sch` | `SchContentValidator` | ph-scuba | XML well-formedness |
-| `.xslt` | `XsltContentValidator` | ph-scuba | XML well-formedness, root element `stylesheet` in XSL Transform namespace |
-| `.zip` | `ZipContentValidator` | ph-scuba | ZIP entry integrity + recursive content validation of entries |
+| `.xsd` | `XsdContentValidator` | ph-scuba-core | XML well-formedness, root element `schema` in W3C XSD namespace |
+| `.sch` | `SchContentValidator` | ph-scuba-core | XML well-formedness |
+| `.xslt` | `XsltContentValidator` | ph-scuba-core | XML well-formedness, root element `stylesheet` in XSL Transform namespace |
+| `.zip` | `ZipContentValidator` | ph-scuba-core | ZIP entry integrity + recursive content validation of entries |
 | `.ves` | `VesContentValidator` | ph-scuba-phive | JAXB unmarshalling, SPDX license validation, requirement resolution, XSD catalog checks |
 | `.status` | `VesStatusContentValidator` | ph-scuba-phive | JAXB unmarshalling, deprecation consistency, replacement VESID existence |
 

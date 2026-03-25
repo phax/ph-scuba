@@ -34,6 +34,7 @@ import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.model.v1.VESStatus1Marshaller;
 import com.helger.phive.ves.v10.VesStatusReplacementType;
 import com.helger.phive.ves.v10.VesStatusType;
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
@@ -42,6 +43,7 @@ import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
  *
  * @author Philip Helger
  */
+@IsSPIImplementation
 public final class VesStatusContentValidator implements IUploadContentValidatorSPI
 {
   private IRepoStorageWithToc m_aRepo;

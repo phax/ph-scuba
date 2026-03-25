@@ -24,6 +24,7 @@ import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
 import com.helger.xml.serialize.read.DOMReader;
@@ -34,6 +35,7 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
  *
  * @author Philip Helger
  */
+@IsSPIImplementation
 public final class SchContentValidator implements IUploadContentValidatorSPI
 {
   public static final String FILE_EXT_SCH = ".sch";
