@@ -1,24 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-
-    Copyright (C) 2024-2026 Philip Helger (www.helger.com)
-    philip[at]helger[dot]com
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-            http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
--->
-<root licenseListVersion="747753e">
-  <license id="0BSD" name="BSD Zero Clause License" />
+<root licenseListVersion="1ff5448">
+  <!-- This file was created with com.helger.scuba.phive.supplemntary.tools.MainReadLicenseListJson - do not edit! -->  <license id="0BSD" name="BSD Zero Clause License" />
+  <license id="3D-Slicer-1.0" name="3D Slicer License v1.0" />
   <license id="AAL" name="Attribution Assurance License" />
   <license id="Abstyles" name="Abstyles License" />
   <license id="AdaCore-doc" name="AdaCore Doc License" />
@@ -27,6 +10,7 @@
   <license id="Adobe-Glyph" name="Adobe Glyph List License" />
   <license id="Adobe-Utopia" name="Adobe Utopia Font License" />
   <license id="ADSL" name="Amazon Digital Services License" />
+  <license id="Advanced-Cryptics-Dictionary" name="Advanced Cryptics Dictionary License" />
   <license id="AFL-1.1" name="Academic Free License v1.1" />
   <license id="AFL-1.2" name="Academic Free License v1.2" />
   <license id="AFL-2.0" name="Academic Free License v2.0" />
@@ -40,6 +24,7 @@
   <license id="AGPL-3.0-only" name="GNU Affero General Public License v3.0 only" />
   <license id="AGPL-3.0-or-later" name="GNU Affero General Public License v3.0 or later" />
   <license id="Aladdin" name="Aladdin Free Public License" />
+  <license id="ALGLIB-Documentation" name="ALGLIB Documentation License" />
   <license id="AMD-newlib" name="AMD newlib License" />
   <license id="AMDPLPA" name="AMD's plpa_map.c License" />
   <license id="AML" name="Apple MIT License" />
@@ -47,6 +32,8 @@
   <license id="AMPAS" name="Academy of Motion Picture Arts and Sciences BSD" />
   <license id="ANTLR-PD" name="ANTLR Software Rights Notice" />
   <license id="ANTLR-PD-fallback" name="ANTLR Software Rights Notice with license fallback" />
+  <license id="any-OSI" name="Any OSI License" />
+  <license id="any-OSI-perl-modules" name="Any OSI License - Perl Modules" />
   <license id="Apache-1.0" name="Apache License 1.0" />
   <license id="Apache-1.1" name="Apache License 1.1" />
   <license id="Apache-2.0" name="Apache License 2.0" />
@@ -62,6 +49,8 @@
   <license id="Artistic-1.0-cl8" name="Artistic License 1.0 w/clause 8" />
   <license id="Artistic-1.0-Perl" name="Artistic License 1.0 (Perl)" />
   <license id="Artistic-2.0" name="Artistic License 2.0" />
+  <license id="Artistic-dist" name="Artistic License 1.0 (dist)" />
+  <license id="Aspell-RU" name="Aspell Russian License" />
   <license id="ASWF-Digital-Assets-1.0" name="ASWF Digital Assets License version 1.0" />
   <license id="ASWF-Digital-Assets-1.1" name="ASWF Digital Assets License 1.1" />
   <license id="Baekmuk" name="Baekmuk License" />
@@ -76,16 +65,19 @@
   <license id="blessing" name="SQLite Blessing" />
   <license id="BlueOak-1.0.0" name="Blue Oak Model License 1.0.0" />
   <license id="Boehm-GC" name="Boehm-Demers-Weiser GC License" />
+  <license id="Boehm-GC-without-fee" name="Boehm-Demers-Weiser GC License (without fee)" />
+  <license id="BOLA-1.1" name="Buena Onda License Agreement v1.1" />
   <license id="Borceux" name="Borceux license" />
   <license id="Brian-Gladman-2-Clause" name="Brian Gladman 2-Clause License" />
   <license id="Brian-Gladman-3-Clause" name="Brian Gladman 3-Clause License" />
   <license id="BSD-1-Clause" name="BSD 1-Clause License" />
   <license id="BSD-2-Clause" name="BSD 2-Clause &quot;Simplified&quot; License" />
   <license id="BSD-2-Clause-Darwin" name="BSD 2-Clause - Ian Darwin variant" />
-  <license id="BSD-2-clause-first-lines" name="BSD 2-Clause - first lines requirement" />
+  <license id="BSD-2-Clause-first-lines" name="BSD 2-Clause - first lines requirement" />
   <license id="BSD-2-Clause-FreeBSD" name="BSD 2-Clause FreeBSD License" />
   <license id="BSD-2-Clause-NetBSD" name="BSD 2-Clause NetBSD License" />
   <license id="BSD-2-Clause-Patent" name="BSD-2-Clause Plus Patent License" />
+  <license id="BSD-2-Clause-pkgconf-disclaimer" name="BSD 2-Clause pkgconf disclaimer variant" />
   <license id="BSD-2-Clause-Views" name="BSD 2-Clause with views sentence" />
   <license id="BSD-3-Clause" name="BSD 3-Clause &quot;New&quot; or &quot;Revised&quot; License" />
   <license id="BSD-3-Clause-acpica" name="BSD 3-Clause acpica variant" />
@@ -101,6 +93,7 @@
   <license id="BSD-3-Clause-No-Nuclear-Warranty" name="BSD 3-Clause No Nuclear Warranty" />
   <license id="BSD-3-Clause-Open-MPI" name="BSD 3-Clause Open MPI variant" />
   <license id="BSD-3-Clause-Sun" name="BSD 3-Clause Sun Microsystems" />
+  <license id="BSD-3-Clause-Tso" name="BSD 3-Clause Tso variant" />
   <license id="BSD-4-Clause" name="BSD 4-Clause &quot;Original&quot; or &quot;Old&quot; License" />
   <license id="BSD-4-Clause-Shortened" name="BSD 4 Clause Shortened" />
   <license id="BSD-4-Clause-UC" name="BSD-4-Clause (University of California-Specific)" />
@@ -109,12 +102,14 @@
   <license id="BSD-Advertising-Acknowledgement" name="BSD Advertising Acknowledgement License" />
   <license id="BSD-Attribution-HPND-disclaimer" name="BSD with Attribution and HPND disclaimer" />
   <license id="BSD-Inferno-Nettverk" name="BSD-Inferno-Nettverk" />
+  <license id="BSD-Mark-Modifications" name="BSD Mark Modifications License" />
   <license id="BSD-Protection" name="BSD Protection License" />
   <license id="BSD-Source-beginning-file" name="BSD Source Code Attribution - beginning of file variant" />
   <license id="BSD-Source-Code" name="BSD Source Code Attribution" />
   <license id="BSD-Systemics" name="Systemics BSD variant license" />
   <license id="BSD-Systemics-W3Works" name="Systemics W3Works BSD variant license" />
   <license id="BSL-1.0" name="Boost Software License 1.0" />
+  <license id="Buddy" name="Buddy License" />
   <license id="BUSL-1.1" name="Business Source License 1.1" />
   <license id="bzip2-1.0.5" name="bzip2 and libbzip2 License v1.0.5" />
   <license id="bzip2-1.0.6" name="bzip2 and libbzip2 License v1.0.6" />
@@ -123,6 +118,7 @@
   <license id="CAL-1.0-Combined-Work-Exception" name="Cryptographic Autonomy License 1.0 (Combined Work Exception)" />
   <license id="Caldera" name="Caldera License" />
   <license id="Caldera-no-preamble" name="Caldera License (without preamble)" />
+  <license id="CAPEC-tou" name="Common Attack    Pattern Enumeration and Classification License" />
   <license id="Catharon" name="Catharon License" />
   <license id="CATOSL-1.1" name="Computer Associates Trusted Open Source License 1.1" />
   <license id="CC-BY-1.0" name="Creative Commons Attribution 1.0 Generic" />
@@ -177,6 +173,8 @@
   <license id="CC-BY-SA-3.0-IGO" name="Creative Commons Attribution-ShareAlike 3.0 IGO" />
   <license id="CC-BY-SA-4.0" name="Creative Commons Attribution Share Alike 4.0 International" />
   <license id="CC-PDDC" name="Creative Commons Public Domain Dedication and Certification" />
+  <license id="CC-PDM-1.0" name="Creative    Commons Public Domain Mark 1.0 Universal" />
+  <license id="CC-SA-1.0" name="Creative Commons Share Alike 1.0 Generic" />
   <license id="CC0-1.0" name="Creative Commons Zero v1.0 Universal" />
   <license id="CDDL-1.0" name="Common Development and Distribution License 1.0" />
   <license id="CDDL-1.1" name="Common Development and Distribution License 1.1" />
@@ -216,16 +214,22 @@
   <license id="CPOL-1.02" name="Code Project Open License 1.02" />
   <license id="Cronyx" name="Cronyx License" />
   <license id="Crossword" name="Crossword License" />
+  <license id="CryptoSwift" name="CryptoSwift License" />
   <license id="CrystalStacker" name="CrystalStacker License" />
   <license id="CUA-OPL-1.0" name="CUA Office Public License v1.0" />
   <license id="Cube" name="Cube License" />
   <license id="curl" name="curl License" />
+  <license id="cve-tou" name="Common Vulnerability Enumeration ToU License" />
   <license id="D-FSL-1.0" name="Deutsche Freie Software Lizenz" />
   <license id="DEC-3-Clause" name="DEC 3-Clause License" />
   <license id="diffmark" name="diffmark license" />
   <license id="DL-DE-BY-2.0" name="Data licence Germany – attribution – version 2.0" />
   <license id="DL-DE-ZERO-2.0" name="Data licence Germany – zero – version 2.0" />
   <license id="DOC" name="DOC License" />
+  <license id="DocBook-DTD" name="DocBook DTD License" />
+  <license id="DocBook-Schema" name="DocBook Schema License" />
+  <license id="DocBook-Stylesheet" name="DocBook Stylesheet License" />
+  <license id="DocBook-XML" name="DocBook XML License" />
   <license id="Dotseqn" name="Dotseqn License" />
   <license id="DRL-1.0" name="Detection Rule License 1.0" />
   <license id="DRL-1.1" name="Detection Rule License 1.1" />
@@ -244,6 +248,9 @@
   <license id="EPL-1.0" name="Eclipse Public License 1.0" />
   <license id="EPL-2.0" name="Eclipse Public License 2.0" />
   <license id="ErlPL-1.1" name="Erlang Public License v1.1" />
+  <license id="ESA-PL-permissive-2.4" name="European Space Agency Public License – v2.4 – Permissive (Type 3)" />
+  <license id="ESA-PL-strong-copyleft-2.4" name="European Space Agency Public License (ESA-PL) - V2.4 - Strong Copyleft (Type 1)" />
+  <license id="ESA-PL-weak-copyleft-2.4" name="European Space Agency Public License – v2.4 – Weak Copyleft (Type 2)" />
   <license id="etalab-2.0" name="Etalab Open License 2.0" />
   <license id="EUDatagrid" name="EU DataGrid Software License" />
   <license id="EUPL-1.0" name="European Union Public License 1.0" />
@@ -261,12 +268,17 @@
   <license id="FSFAP-no-warranty-disclaimer" name="FSF All Permissive License (without Warranty)" />
   <license id="FSFUL" name="FSF Unlimited License" />
   <license id="FSFULLR" name="FSF Unlimited License (with License Retention)" />
+  <license id="FSFULLRSD" name="FSF Unlimited License (with License Retention and Short Disclaimer)" />
   <license id="FSFULLRWD" name="FSF Unlimited License (With License Retention and Warranty Disclaimer)" />
+  <license id="FSL-1.1-ALv2" name="Functional Source License, Version 1.1, ALv2 Future License" />
+  <license id="FSL-1.1-MIT" name="Functional Source License, Version 1.1, MIT Future License" />
   <license id="FTL" name="Freetype Project License" />
   <license id="Furuseth" name="Furuseth License" />
   <license id="fwlw" name="fwlw License" />
+  <license id="Game-Programming-Gems" name="Game Programming Gems License" />
   <license id="GCR-docs" name="Gnome GCR Documentation License" />
   <license id="GD" name="GD License" />
+  <license id="generic-xts" name="Generic XTS License" />
   <license id="GFDL-1.1" name="GNU Free Documentation License v1.1" />
   <license id="GFDL-1.1-invariants-only" name="GNU Free Documentation License v1.1 only - invariants" />
   <license id="GFDL-1.1-invariants-or-later" name="GNU Free Documentation License v1.1 or later - invariants" />
@@ -294,7 +306,7 @@
   <license id="Glulxe" name="Glulxe License" />
   <license id="GLWTPL" name="Good Luck With That Public License" />
   <license id="gnuplot" name="gnuplot License" />
-  <license id="GPL-1.0" name="GNU General Public License v1.0" />
+  <license id="GPL-1.0" name="GNU General Public License v1.0 only" />
   <license id="GPL-1.0+" name="GNU General Public License v1.0 or later" />
   <license id="GPL-1.0-only" name="GNU General Public License v1.0 only" />
   <license id="GPL-1.0-or-later" name="GNU General Public License v1.0 or later" />
@@ -316,8 +328,11 @@
   <license id="Graphics-Gems" name="Graphics Gems License" />
   <license id="gSOAP-1.3b" name="gSOAP Public License v1.3b" />
   <license id="gtkbook" name="gtkbook License" />
+  <license id="Gutmann" name="Gutmann License" />
   <license id="HaskellReport" name="Haskell Language Report License" />
+  <license id="HDF5" name="HDF5 License" />
   <license id="hdparm" name="hdparm License" />
+  <license id="HIDAPI" name="HIDAPI License" />
   <license id="Hippocratic-2.1" name="Hippocratic License 2.1" />
   <license id="HP-1986" name="Hewlett-Packard 1986 License" />
   <license id="HP-1989" name="Hewlett-Packard 1989 License" />
@@ -326,20 +341,29 @@
   <license id="HPND-doc" name="Historical Permission Notice and Disclaimer - documentation variant" />
   <license id="HPND-doc-sell" name="Historical Permission Notice and Disclaimer - documentation sell variant" />
   <license id="HPND-export-US" name="HPND with US Government export control warning" />
+  <license id="HPND-export-US-acknowledgement" name="HPND with US Government export control warning and acknowledgment" />
   <license id="HPND-export-US-modify" name="HPND with US Government export control warning and modification rqmt" />
+  <license id="HPND-export2-US" name="HPND with US Government export control and 2 disclaimers" />
   <license id="HPND-Fenneberg-Livingston" name="Historical Permission Notice and Disclaimer - Fenneberg-Livingston variant" />
   <license id="HPND-INRIA-IMAG" name="Historical Permission Notice and Disclaimer    - INRIA-IMAG variant" />
+  <license id="HPND-Intel" name="Historical Permission Notice and Disclaimer - Intel variant" />
   <license id="HPND-Kevlin-Henney" name="Historical Permission Notice and Disclaimer - Kevlin Henney variant" />
   <license id="HPND-Markus-Kuhn" name="Historical Permission Notice and Disclaimer - Markus Kuhn variant" />
+  <license id="HPND-merchantability-variant" name="Historical Permission Notice and Disclaimer - merchantability variant" />
   <license id="HPND-MIT-disclaimer" name="Historical Permission Notice and Disclaimer with MIT disclaimer" />
+  <license id="HPND-Netrek" name="Historical Permission Notice and Disclaimer - Netrek variant" />
   <license id="HPND-Pbmplus" name="Historical Permission Notice and Disclaimer - Pbmplus variant" />
   <license id="HPND-sell-MIT-disclaimer-xserver" name="Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer" />
   <license id="HPND-sell-regexpr" name="Historical Permission Notice and Disclaimer - sell regexpr variant" />
   <license id="HPND-sell-variant" name="Historical Permission Notice and Disclaimer - sell variant" />
+  <license id="HPND-sell-variant-critical-systems" name="HPND - sell variant with safety critical systems clause" />
   <license id="HPND-sell-variant-MIT-disclaimer" name="HPND sell variant with MIT disclaimer" />
+  <license id="HPND-sell-variant-MIT-disclaimer-rev" name="HPND sell variant with MIT disclaimer - reverse" />
+  <license id="HPND-SMC" name="Historical Permission Notice and Disclaimer - SMC variant" />
   <license id="HPND-UC" name="Historical Permission Notice and Disclaimer - University of California variant" />
   <license id="HPND-UC-export-US" name="Historical Permission Notice and Disclaimer - University of California, US export warning" />
   <license id="HTMLTIDY" name="HTML Tidy License" />
+  <license id="hyphen-bulgarian" name="hyphen-bulgarian License" />
   <license id="IBM-pibs" name="IBM PowerPC Initialization and Boot Software" />
   <license id="ICU" name="ICU License" />
   <license id="IEC-Code-Components-EULA" name="IEC    Code Components End-user licence agreement" />
@@ -350,6 +374,7 @@
   <license id="Imlib2" name="Imlib2 License" />
   <license id="Info-ZIP" name="Info-ZIP License" />
   <license id="Inner-Net-2.0" name="Inner Net License v2.0" />
+  <license id="InnoSetup" name="Inno Setup License" />
   <license id="Intel" name="Intel Open Source License" />
   <license id="Intel-ACPI" name="Intel ACPI Software License Agreement" />
   <license id="Interbase-1.0" name="Interbase Public License v1.0" />
@@ -357,8 +382,10 @@
   <license id="IPL-1.0" name="IBM Public License v1.0" />
   <license id="ISC" name="ISC License" />
   <license id="ISC-Veillard" name="ISC Veillard variant" />
+  <license id="ISO-permission" name="ISO permission notice" />
   <license id="Jam" name="Jam License" />
   <license id="JasPer-2.0" name="JasPer License" />
+  <license id="jove" name="Jove License" />
   <license id="JPL-image" name="JPL Image Use Policy" />
   <license id="JPNIC" name="Japan Network Information Center License" />
   <license id="JSON" name="JSON License" />
@@ -384,6 +411,7 @@
   <license id="LGPL-3.0-or-later" name="GNU Lesser General Public License v3.0 or later" />
   <license id="LGPLLR" name="Lesser General Public License For Linguistic Resources" />
   <license id="Libpng" name="libpng License" />
+  <license id="libpng-1.6.35" name="PNG Reference Library License v1 (for libpng 0.5 through 1.6.35)" />
   <license id="libpng-2.0" name="PNG Reference Library version 2" />
   <license id="libselinux-1.0" name="libselinux public domain notice" />
   <license id="libtiff" name="libtiff License" />
@@ -414,14 +442,17 @@
   <license id="magaz" name="magaz License" />
   <license id="mailprio" name="mailprio License" />
   <license id="MakeIndex" name="MakeIndex License" />
+  <license id="man2html" name="man2html License" />
   <license id="Martin-Birgmeier" name="Martin Birgmeier License" />
   <license id="McPhee-slideshow" name="McPhee Slideshow License" />
   <license id="metamail" name="metamail License" />
   <license id="Minpack" name="Minpack License" />
+  <license id="MIPS" name="MIPS License" />
   <license id="MirOS" name="The MirOS Licence" />
   <license id="MIT" name="MIT License" />
   <license id="MIT-0" name="MIT No Attribution" />
   <license id="MIT-advertising" name="Enlightenment License (e16)" />
+  <license id="MIT-Click" name="MIT Click License" />
   <license id="MIT-CMU" name="CMU License" />
   <license id="MIT-enna" name="enna License" />
   <license id="MIT-feh" name="feh License" />
@@ -429,10 +460,12 @@
   <license id="MIT-Khronos-old" name="MIT Khronos - old variant" />
   <license id="MIT-Modern-Variant" name="MIT License Modern Variant" />
   <license id="MIT-open-group" name="MIT Open Group variant" />
+  <license id="MIT-STK" name="MIT-STK License" />
   <license id="MIT-testregex" name="MIT testregex Variant" />
   <license id="MIT-Wu" name="MIT Tom Wu Variant" />
   <license id="MITNFA" name="MIT +no-false-attribs license" />
   <license id="MMIXware" name="MMIXware License" />
+  <license id="MMPL-1.0.1" name="Minecraft Mod Public License v1.0.1" />
   <license id="Motosoto" name="Motosoto License" />
   <license id="MPEG-SSG" name="MPEG Software Simulation" />
   <license id="mpi-permissive" name="mpi Permissive License" />
@@ -454,6 +487,7 @@
   <license id="NASA-1.3" name="NASA Open Source Agreement 1.3" />
   <license id="Naumen" name="Naumen Public License" />
   <license id="NBPL-1.0" name="Net Boolean Public License v1" />
+  <license id="NCBI-PD" name="NCBI Public Domain Notice" />
   <license id="NCGL-UK-2.0" name="Non-Commercial Government Licence" />
   <license id="NCL" name="NCL Source Code License" />
   <license id="NCSA" name="University of Illinois/NCSA Open Source License" />
@@ -461,9 +495,11 @@
   <license id="NetCDF" name="NetCDF license" />
   <license id="Newsletr" name="Newsletr License" />
   <license id="NGPL" name="Nethack General Public License" />
+  <license id="ngrep" name="ngrep License" />
   <license id="NICTA-1.0" name="NICTA Public Software License, Version 1.0" />
   <license id="NIST-PD" name="NIST Public Domain Notice" />
   <license id="NIST-PD-fallback" name="NIST Public Domain Notice with license fallback" />
+  <license id="NIST-PD-TNT" name="NIST    Public Domain Notice TNT variant" />
   <license id="NIST-Software" name="NIST Software License" />
   <license id="NLOD-1.0" name="Norwegian Licence for Open Government Data (NLOD) 1.0" />
   <license id="NLOD-2.0" name="Norwegian Licence for Open Government Data (NLOD) 2.0" />
@@ -475,6 +511,7 @@
   <license id="NPL-1.1" name="Netscape Public License v1.1" />
   <license id="NPOSL-3.0" name="Non-Profit Open Software License 3.0" />
   <license id="NRL" name="NRL License" />
+  <license id="NTIA-PD" name="NTIA Public Domain Notice" />
   <license id="NTP" name="NTP License" />
   <license id="NTP-0" name="NTP No Attribution" />
   <license id="Nunit" name="Nunit License" />
@@ -516,6 +553,7 @@
   <license id="OLDAP-2.8" name="Open LDAP Public License v2.8" />
   <license id="OLFL-1.3" name="Open Logistics Foundation License Version 1.3" />
   <license id="OML" name="Open Market License" />
+  <license id="OpenMDW-1.0" name="OpenMDW License Agreement v1.0" />
   <license id="OpenPBS-2.3" name="OpenPBS v2.3 Software License" />
   <license id="OpenSSL" name="OpenSSL License" />
   <license id="OpenSSL-standalone" name="OpenSSL License - standalone" />
@@ -523,13 +561,16 @@
   <license id="OPL-1.0" name="Open Public License v1.0" />
   <license id="OPL-UK-3.0" name="United    Kingdom Open Parliament Licence v3.0" />
   <license id="OPUBL-1.0" name="Open Publication License v1.0" />
+  <license id="OSC-1.0" name="OSC License 1.0" />
   <license id="OSET-PL-2.1" name="OSET Public License version 2.1" />
   <license id="OSL-1.0" name="Open Software License 1.0" />
   <license id="OSL-1.1" name="Open Software License 1.1" />
   <license id="OSL-2.0" name="Open Software License 2.0" />
   <license id="OSL-2.1" name="Open Software License 2.1" />
   <license id="OSL-3.0" name="Open Software License 3.0" />
+  <license id="OSSP" name="OSSP License" />
   <license id="PADL" name="PADL License" />
+  <license id="ParaType-Free-Font-1.3" name="ParaType Free Font Licensing Agreement v1.3" />
   <license id="Parity-6.0.0" name="The Parity Public License 6.0.0" />
   <license id="Parity-7.0.0" name="The Parity Public License 7.0.0" />
   <license id="PDDL-1.0" name="Open Data Commons Public Domain Dedication &amp; License 1.0" />
@@ -542,6 +583,7 @@
   <license id="PolyForm-Noncommercial-1.0.0" name="PolyForm Noncommercial License 1.0.0" />
   <license id="PolyForm-Small-Business-1.0.0" name="PolyForm Small Business License 1.0.0" />
   <license id="PostgreSQL" name="PostgreSQL License" />
+  <license id="PPL" name="Peer Production License" />
   <license id="PSF-2.0" name="Python Software Foundation License 2.0" />
   <license id="psfrag" name="psfrag License" />
   <license id="psutils" name="psutils License" />
@@ -560,6 +602,7 @@
   <license id="RSA-MD" name="RSA Message-Digest License" />
   <license id="RSCPL" name="Ricoh Source Code Public License" />
   <license id="Ruby" name="Ruby License" />
+  <license id="Ruby-pty" name="Ruby pty extension license" />
   <license id="SAX-PD" name="Sax Public Domain Notice" />
   <license id="SAX-PD-2.0" name="Sax Public Domain Notice 2.0" />
   <license id="Saxpath" name="Saxpath License" />
@@ -567,10 +610,12 @@
   <license id="SchemeReport" name="Scheme Language Report License" />
   <license id="Sendmail" name="Sendmail License" />
   <license id="Sendmail-8.23" name="Sendmail License 8.23" />
+  <license id="Sendmail-Open-Source-1.1" name="Sendmail Open Source License v1.1" />
   <license id="SGI-B-1.0" name="SGI Free Software License B v1.0" />
   <license id="SGI-B-1.1" name="SGI Free Software License B v1.1" />
   <license id="SGI-B-2.0" name="SGI Free Software License B v2.0" />
   <license id="SGI-OpenGL" name="SGI OpenGL License" />
+  <license id="SGMLUG-PM" name="SGMLUG Parser Materials License" />
   <license id="SGP4" name="SGP4 Permission Notice" />
   <license id="SHL-0.5" name="Solderpad Hardware License v0.5" />
   <license id="SHL-0.51" name="Solderpad Hardware License, Version 0.51" />
@@ -579,10 +624,12 @@
   <license id="SISSL-1.2" name="Sun Industry Standards Source License v1.2" />
   <license id="SL" name="SL License" />
   <license id="Sleepycat" name="Sleepycat License" />
+  <license id="SMAIL-GPL" name="SMAIL General Public License" />
   <license id="SMLNJ" name="Standard ML of New Jersey License" />
   <license id="SMPPL" name="Secure Messaging Protocol Public License" />
   <license id="SNIA" name="SNIA Public License 1.1" />
   <license id="snprintf" name="snprintf License" />
+  <license id="SOFA" name="SOFA Software License" />
   <license id="softSurfer" name="softSurfer License" />
   <license id="Soundex" name="Soundex License" />
   <license id="Spencer-86" name="Spencer License 86" />
@@ -596,6 +643,7 @@
   <license id="SSPL-1.0" name="Server Side Public License, v 1" />
   <license id="StandardML-NJ" name="Standard ML of New Jersey License" />
   <license id="SugarCRM-1.1.3" name="SugarCRM Public License v1.1.3" />
+  <license id="SUL-1.0" name="Sustainable Use License v1.0" />
   <license id="Sun-PPP" name="Sun PPP License" />
   <license id="Sun-PPP-2000" name="Sun PPP License (2000)" />
   <license id="SunPro" name="SunPro License" />
@@ -605,18 +653,22 @@
   <license id="TAPR-OHL-1.0" name="TAPR Open Hardware License v1.0" />
   <license id="TCL" name="TCL/TK License" />
   <license id="TCP-wrappers" name="TCP Wrappers License" />
+  <license id="TekHVC" name="TekHVC License" />
   <license id="TermReadKey" name="TermReadKey License" />
   <license id="TGPPL-1.0" name="Transitive Grace Period Public Licence 1.0" />
+  <license id="ThirdEye" name="ThirdEye License" />
   <license id="threeparttable" name="threeparttable License" />
   <license id="TMate" name="TMate Open Source License" />
   <license id="TORQUE-1.1" name="TORQUE v2.5+ Software License v1.1" />
   <license id="TOSL" name="Trusster Open Source License" />
   <license id="TPDL" name="Time::ParseDate License" />
   <license id="TPL-1.0" name="THOR Public License 1.0" />
+  <license id="TrustedQSL" name="TrustedQSL License" />
   <license id="TTWL" name="Text-Tabs+Wrap License" />
   <license id="TTYP0" name="TTYP0 License" />
   <license id="TU-Berlin-1.0" name="Technische Universitaet Berlin License 1.0" />
   <license id="TU-Berlin-2.0" name="Technische Universitaet Berlin License 2.0" />
+  <license id="Ubuntu-font-1.0" name="Ubuntu Font Licence v1.0" />
   <license id="UCAR" name="UCAR License" />
   <license id="UCL-1.0" name="Upstream Compatibility License v1.0" />
   <license id="ulem" name="ulem License" />
@@ -627,9 +679,13 @@
   <license id="Unicode-TOU" name="Unicode Terms of Use" />
   <license id="UnixCrypt" name="UnixCrypt License" />
   <license id="Unlicense" name="The Unlicense" />
+  <license id="Unlicense-libtelnet" name="Unlicense - libtelnet variant" />
+  <license id="Unlicense-libwhirlpool" name="Unlicense - libwhirlpool variant" />
+  <license id="UnRAR" name="UnRAR License" />
   <license id="UPL-1.0" name="Universal Permissive License v1.0" />
   <license id="URT-RLE" name="Utah Raster Toolkit Run Length Encoded License" />
   <license id="Vim" name="Vim License" />
+  <license id="Vixie-Cron" name="Vixie Cron License" />
   <license id="VOSTROM" name="VOSTROM Public License for Open Source" />
   <license id="VSL-1.0" name="Vovida Software License v1.0" />
   <license id="W3C" name="W3C Software Notice and License (2002-12-31)" />
@@ -638,11 +694,16 @@
   <license id="w3m" name="w3m License" />
   <license id="Watcom-1.0" name="Sybase Open Watcom Public License 1.0" />
   <license id="Widget-Workshop" name="Widget Workshop License" />
+  <license id="WordNet" name="WordNet License" />
   <license id="Wsuipa" name="Wsuipa License" />
+  <license id="WTFNMFPL" name="Do What The F*ck You Want To But It's Not My Fault Public License" />
   <license id="WTFPL" name="Do What The F*ck You Want To Public License" />
+  <license id="wwl" name="WWL License" />
   <license id="wxWindows" name="wxWindows Library License" />
   <license id="X11" name="X11 License" />
   <license id="X11-distribute-modifications-variant" name="X11 License Distribution Modification Variant" />
+  <license id="X11-no-permit-persons" name="X11 no permit persons clause" />
+  <license id="X11-swapped" name="X11 swapped final paragraphs" />
   <license id="Xdebug-1.03" name="Xdebug License v 1.03" />
   <license id="Xerox" name="Xerox License" />
   <license id="Xfig" name="Xfig License" />

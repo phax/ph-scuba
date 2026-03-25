@@ -55,6 +55,7 @@
       <groupId>com.helger.diver</groupId>
       <artifactId>ph-diver-api</artifactId>
     </dependency>
+    
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
@@ -63,6 +64,16 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.commons</groupId>
+      <artifactId>ph-json</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.web</groupId>
+      <artifactId>ph-httpclient</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
