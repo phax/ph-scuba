@@ -37,8 +37,8 @@ public final class VesContentValidatorTest
   {
     final VesContentValidator ret = new VesContentValidator ();
     ret.initRepoStorage (RepoStorageInMemory.createDefault ("test",
-                                                             ERepoWritable.WITH_WRITE,
-                                                             ERepoDeletable.WITH_DELETE));
+                                                            ERepoWritable.WITH_WRITE,
+                                                            ERepoDeletable.WITH_DELETE));
     return ret;
   }
 

@@ -34,9 +34,9 @@ public final class XsltContentValidatorTest
   public void testValidXslt ()
   {
     final String sXslt = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                          "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>\n" +
-                          "  <xsl:template match='/'/>\n" +
-                          "</xsl:stylesheet>";
+                         "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>\n" +
+                         "  <xsl:template match='/'/>\n" +
+                         "</xsl:stylesheet>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (VALIDATOR.isValidContent (".xslt",
                                           new ByteArrayInputStream (sXslt.getBytes (StandardCharsets.UTF_8)),
@@ -48,7 +48,7 @@ public final class XsltContentValidatorTest
   public void testWrongRootElement ()
   {
     final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<transform xmlns='http://www.w3.org/1999/XSL/Transform'/>";
+                        "<transform xmlns='http://www.w3.org/1999/XSL/Transform'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xslt",
                                            new ByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),

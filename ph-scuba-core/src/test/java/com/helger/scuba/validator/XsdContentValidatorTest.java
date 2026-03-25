@@ -42,9 +42,9 @@ public final class XsdContentValidatorTest
   public void testValidXsd ()
   {
     final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
-                         "  <xs:element name='test' type='xs:string'/>\n" +
-                         "</xs:schema>";
+                        "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
+                        "  <xs:element name='test' type='xs:string'/>\n" +
+                        "</xs:schema>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (VALIDATOR.isValidContent (".xsd",
                                           new ByteArrayInputStream (sXsd.getBytes (StandardCharsets.UTF_8)),
@@ -65,8 +65,7 @@ public final class XsdContentValidatorTest
   @Test
   public void testWrongRootElement ()
   {
-    final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<root xmlns='http://www.w3.org/2001/XMLSchema'/>";
+    final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" + "<root xmlns='http://www.w3.org/2001/XMLSchema'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xsd",
                                            new ByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
@@ -77,8 +76,7 @@ public final class XsdContentValidatorTest
   @Test
   public void testWrongNamespace ()
   {
-    final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<schema xmlns='urn:wrong'/>";
+    final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" + "<schema xmlns='urn:wrong'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xsd",
                                            new ByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),

@@ -37,8 +37,8 @@ import com.helger.scuba.api.spi.IUploadContentValidatorRegistry;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
- * Central content validation dispatcher. Loads all {@link IUploadContentValidatorSPI} implementations
- * via {@link ServiceLoader} and dispatches validation by file extension.
+ * Central content validation dispatcher. Loads all {@link IUploadContentValidatorSPI}
+ * implementations via {@link ServiceLoader} and dispatches validation by file extension.
  * <p>
  * Supports nested context paths for hierarchical validation (e.g., ZIP entries). Error messages are
  * prefixed with the context path so the user can identify where in a nested structure an error

@@ -34,9 +34,9 @@ public final class SchContentValidatorTest
   public void testValidSchematron ()
   {
     final String sSch = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<schema xmlns='http://purl.oclc.org/dml/schematron'>\n" +
-                         "  <pattern name='test'/>\n" +
-                         "</schema>";
+                        "<schema xmlns='http://purl.oclc.org/dml/schematron'>\n" +
+                        "  <pattern name='test'/>\n" +
+                        "</schema>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (VALIDATOR.isValidContent (".sch",
                                           new ByteArrayInputStream (sSch.getBytes (StandardCharsets.UTF_8)),

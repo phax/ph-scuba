@@ -46,9 +46,9 @@ public final class UploadContentValidatorTest
   {
     final UploadContentValidator aValidator = _createValidator ();
     final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
-                         "  <xs:element name='test' type='xs:string'/>\n" +
-                         "</xs:schema>";
+                        "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
+                        "  <xs:element name='test' type='xs:string'/>\n" +
+                        "</xs:schema>";
     final ErrorList aErrors = new ErrorList ();
     assertTrue (aValidator.validateContent ("",
                                             ".xsd",
@@ -89,9 +89,9 @@ public final class UploadContentValidatorTest
 
     // Create a ZIP containing a valid XSD
     final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
-                         "  <xs:element name='test' type='xs:string'/>\n" +
-                         "</xs:schema>";
+                        "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
+                        "  <xs:element name='test' type='xs:string'/>\n" +
+                        "</xs:schema>";
     final ByteArrayOutputStream baos = new ByteArrayOutputStream ();
     try (final ZipOutputStream zos = new ZipOutputStream (baos))
     {

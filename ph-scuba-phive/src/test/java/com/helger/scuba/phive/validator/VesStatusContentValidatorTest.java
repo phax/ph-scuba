@@ -37,8 +37,8 @@ public final class VesStatusContentValidatorTest
   {
     final VesStatusContentValidator ret = new VesStatusContentValidator ();
     ret.initRepoStorage (RepoStorageInMemory.createDefault ("test",
-                                                             ERepoWritable.WITH_WRITE,
-                                                             ERepoDeletable.WITH_DELETE));
+                                                            ERepoWritable.WITH_WRITE,
+                                                            ERepoDeletable.WITH_DELETE));
     return ret;
   }
 
@@ -66,10 +66,10 @@ public final class VesStatusContentValidatorTest
   {
     // VES Status with deprecation reason but without deprecated=true
     final String sStatus = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                            "<VesStatus xmlns='urn:com:helger:phive:ves:v1.0'\n" +
-                            "           groupId='com.test' artifactId='test' version='1.0'\n" +
-                            "           deprecationReason='old version'>\n" +
-                            "</VesStatus>";
+                           "<VesStatus xmlns='urn:com:helger:phive:ves:v1.0'\n" +
+                           "           groupId='com.test' artifactId='test' version='1.0'\n" +
+                           "           deprecationReason='old version'>\n" +
+                           "</VesStatus>";
     final VesStatusContentValidator aValidator = _createValidator ();
     final ErrorList aErrors = new ErrorList ();
     assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_STATUS,

@@ -24,35 +24,32 @@ import org.jspecify.annotations.NonNull;
 import com.helger.diagnostics.error.list.ErrorList;
 
 /**
- * Registry for content validators. Provides a central dispatch point for
- * validating content by file extension, with support for nested context paths
- * (e.g., when validating files inside a ZIP archive).
+ * Registry for content validators. Provides a central dispatch point for validating content by file
+ * extension, with support for nested context paths (e.g., when validating files inside a ZIP
+ * archive).
  * <p>
- * The context path is prepended to error messages so that nested validation
- * errors carry the full path context. For example, validating a file inside a
- * ZIP produces errors like: {@code "archive.zip/inner-dir/schema.xsd: The root element ..."}
+ * The context path is prepended to error messages so that nested validation errors carry the full
+ * path context. For example, validating a file inside a ZIP produces errors like:
+ * {@code "archive.zip/inner-dir/schema.xsd: The root element ..."}
  *
  * @author Philip Helger
  */
 public interface IUploadContentValidatorRegistry
 {
   /**
-   * Validate the content of a file with the given extension, using the provided
-   * context path for error message prefixing.
+   * Validate the content of a file with the given extension, using the provided context path for
+   * error message prefixing.
    *
    * @param sContextPath
-   *        The context path for error messages. May be empty for top-level
-   *        validation. For nested validation (e.g., inside a ZIP), this contains
-   *        the path to the container (e.g., "archive.zip/subdir/"). Never
-   *        <code>null</code>.
+   *        The context path for error messages. May be empty for top-level validation. For nested
+   *        validation (e.g., inside a ZIP), this contains the path to the container (e.g.,
+   *        "archive.zip/subdir/"). Never <code>null</code>.
    * @param sFileExt
-   *        The file extension including the leading dot (e.g., ".xsd"). Never
-   *        <code>null</code>.
+   *        The file extension including the leading dot (e.g., ".xsd"). Never <code>null</code>.
    * @param aIS
    *        The input stream to read the content from. Never <code>null</code>.
    * @param aErrorList
-   *        The error list to collect all validation errors into. Never
-   *        <code>null</code>.
+   *        The error list to collect all validation errors into. Never <code>null</code>.
    * @return {@code true} if the content is valid, {@code false} otherwise.
    * @throws IOException
    *         On IO error
@@ -66,8 +63,7 @@ public interface IUploadContentValidatorRegistry
    * Check if a validator is registered for the given file extension.
    *
    * @param sFileExt
-   *        The file extension including the leading dot. Never
-   *        <code>null</code>.
+   *        The file extension including the leading dot. Never <code>null</code>.
    * @return {@code true} if a validator exists for this extension.
    */
   boolean hasValidatorForExtension (@NonNull String sFileExt);
