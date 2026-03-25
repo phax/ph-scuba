@@ -41,9 +41,6 @@
   </licenses>
 
   <properties>
-    <maven.compiler.release>21</maven.compiler.release>
-
-    <!-- External dependency versions -->
     <ph-commons.version>12.1.5</ph-commons.version>
     <ph-web.version>11.2.4</ph-web.version>
     <ph-diver.version>4.2.0</ph-diver.version>
