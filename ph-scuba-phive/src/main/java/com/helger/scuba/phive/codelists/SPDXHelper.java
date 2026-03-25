@@ -54,7 +54,7 @@ public final class SPDXHelper
 
   static
   {
-    final IMicroDocument aDoc = MicroReader.readMicroXML (new ClassPathResource ("codelists/spdx.xml",
+    final IMicroDocument aDoc = MicroReader.readMicroXML (new ClassPathResource ("external/codelists/spdx.xml",
                                                                                  SPDXHelper.class.getClassLoader ()));
     if (aDoc == null || aDoc.getDocumentElement () == null)
       throw new InitializationException ("Failed to read contained SPDX list");
