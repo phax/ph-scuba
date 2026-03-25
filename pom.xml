@@ -44,8 +44,6 @@
     <maven.compiler.release>21</maven.compiler.release>
 
     <!-- External dependency versions -->
-    <spring-boot.version>4.0.4</spring-boot.version>
-
     <ph-commons.version>12.1.5</ph-commons.version>
     <ph-web.version>11.2.4</ph-web.version>
     <ph-diver.version>4.2.0</ph-diver.version>
@@ -100,11 +98,6 @@
         <artifactId>ph-scuba-phive</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.helger.scuba</groupId>
-        <artifactId>ph-scuba-webapp</artifactId>
-        <version>${project.version}</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -131,6 +124,5 @@
     <module>ph-scuba-api</module>
     <module>ph-scuba</module>
     <module>ph-scuba-phive</module>
-    <module>ph-scuba-webapp</module>
   </modules>
 </project>

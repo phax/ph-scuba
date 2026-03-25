@@ -24,6 +24,8 @@ SCUBA extracts and generalizes the upload mechanics so that **any** diver-based 
 - [Configuration](Configuration.md) - Storage backends and uploader configuration
 - [Development Guide](Development-Guide.md) - Building, testing, and contributing
 
+Note: SCUBA is a library-only project. There is no standalone web application module.
+
 ## Related Projects
 
 | Project | Description |
@@ -32,4 +34,3 @@ SCUBA extracts and generalizes the upload mechanics so that **any** diver-based 
 | [phive](https://github.com/phax/phive) | Philip Helger Integrative Validation Engine (VES, VESStatus) |
 | [phive-central-tools](https://github.com/phax/phive-central-tools) | Domain-specific uploader for phive-central (reference implementation) |
 | [ph-commons](https://github.com/phax/ph-commons) | Common Java utilities used throughout the ph-* ecosystem |
-| [phoss-ap](https://github.com/phax/phoss-ap) | Reference for Spring Boot 4.x webapp pattern |

@@ -10,14 +10,6 @@
 ## High-Level Architecture
 
 ```
-                    ┌─────────────────────────────┐
-                    │   ph-scuba-webapp            │
-                    │   (Spring Boot 4.x REST API) │
-                    └──────────┬──────────────────┘
-                               │
-                  ┌────────────┼────────────────┐
-                  │                             │
-                  ▼                             ▼
      ┌─────────────────────┐      ┌──────────────────────┐
      │   ph-scuba           │      │   ph-scuba-phive      │
      │   (Core upload logic,│      │   (VES/VESStatus      │

@@ -8,8 +8,7 @@ SCUBA follows the established ph-* Maven multi-module pattern.
 scuba (parent POM)
 ├── ph-scuba-api           Generic upload and content validation API (incl. SPI)
 ├── ph-scuba               Main business logic (upload pipeline)
-├── ph-scuba-phive         Phive-specific content validators and VES upload logic
-└── ph-scuba-webapp        Spring Boot 4.x standalone web application
+└── ph-scuba-phive         Phive-specific content validators and VES upload logic
 ```
 
 ---
@@ -132,34 +131,6 @@ This module exists as a separate submodule because the VES and VESStatus validat
 
 ---
 
-### ph-scuba-webapp
-
-A standalone **Spring Boot 4.x** web application providing an HTTP interface for **upload operations**.
-
-**Pattern:** Follows the same structure as `phoss-ap-webapp` in the [phoss-ap](https://github.com/phax/phoss-ap) project.
-
-**Key responsibilities:**
-- REST API for upload operations
-- Configuration via `application.properties`
-- Spring Boot Actuator for health/monitoring
-- API security (token-based authentication)
-
-**Spring Boot setup:**
-- Spring Boot 4.0.4 with embedded server
-- `@SpringBootApplication` main class
-- Executable JAR packaging via `spring-boot-maven-plugin`
-- Profile-based configuration (`application.properties`, `application-private.properties`)
-- Java 21
-
-**Dependencies:**
-- `ph-scuba` (core business logic)
-- `ph-scuba-phive` (phive-specific upload support, loaded via SPI at runtime)
-- `spring-boot-starter-web`
-- `spring-boot-starter-actuator`
-- Storage backend dependency as needed (`ph-diver-repo-http`, `ph-diver-repo-s3`)
-
----
-
 ## Dependency Graph
 
 ```
@@ -169,15 +140,13 @@ ph-diver-api ◄──── ph-scuba-api (defines IUploadContentValidatorSPI)
 ph-diver-repo ◄─── ph-scuba (core: loads SPI, built-in .xsd/.sch/.xslt/.zip validators)
 ph-xml ◄───────┘        ▲
                         │
-                   ┌────┴──────────────┐
-                   │                   │
-            ph-scuba-phive      ph-scuba-webapp
-            (SPI: .ves/.status)        │
-                   │                   │
-                   ▼                   ▼
-         phive-ves-model        Spring Boot 4.x
-         phive-ves-engine       ph-diver-repo-http / s3
-         phive-api
+                  ph-scuba-phive
+                  (SPI: .ves/.status)
+                        │
+                        ▼
+              phive-ves-model
+              phive-ves-engine
+              phive-api
 ```
 
 ## Maven Parent POM
@@ -188,5 +157,4 @@ The parent POM will:
 - Version: `0.0.1-SNAPSHOT`
 - Java release: `21`
 - Import ph-diver (`4.2.0`), ph-commons (`12.1.5`), and phive (`12.0.1`) BOMs via `<dependencyManagement>`
-- Import Spring Boot (`4.0.4`) BOM for the webapp module
 - Define shared plugin configuration (compiler, surefire, etc.)

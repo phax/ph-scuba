@@ -56,23 +56,3 @@ The uploader supports configuration options such as:
 | Validators | (built-in) | List of `IUploadValidator` instances, dispatched by file extension |
 | Auditors | (none) | List of `IUploadAuditor` instances to notify |
 
-## Webapp Configuration (ph-scuba-webapp)
-
-The Spring Boot webapp uses `application.properties` following the phoss-ap pattern:
-
-```properties
-# Server
-server.port=8080
-
-# Storage backend
-scuba.storage.type=filesystem
-scuba.storage.path=/path/to/repository
-
-# API security
-scuba.api.required-token=my-secret-token
-
-# Actuator
-management.endpoints.web.exposure.include=health,info
-```
-
-Profile-specific overrides go in `application-private.properties`.

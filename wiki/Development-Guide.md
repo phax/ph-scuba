@@ -26,7 +26,6 @@ SCUBA follows the conventions established across the ph-* ecosystem:
 ### Maven
 - Parent POM: `com.helger:parent-pom`
 - BOM imports for transitive dependency management
-- Spring Boot BOM for webapp module
 - JAXB plugin for XML binding where needed
 
 ### Testing
@@ -39,13 +38,12 @@ SCUBA follows the conventions established across the ph-* ecosystem:
 When adding a new module:
 1. Add it to the parent POM `<modules>` section
 2. Define its dependencies in the parent POM `<dependencyManagement>` section
-3. Keep the dependency graph acyclic and layered (api -> core -> phive/webapp)
+3. Keep the dependency graph acyclic and layered (api -> core -> phive)
 
 ## Reference Projects
 
 | Project | What to reference |
 |---------|-------------------|
-| phoss-ap | Spring Boot 4.x webapp pattern, REST controllers, API security |
 | phive-central-tools | VES/VESStatus upload logic (being generalized into ph-scuba-phive) |
 | ph-diver | Repository storage abstraction, DVR coordinates |
 | phive | VES model, marshallers, validation engine |
