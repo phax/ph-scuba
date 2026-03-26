@@ -29,7 +29,7 @@ ph-scuba follows the conventions established across the ph-* ecosystem:
 - JAXB plugin for XML binding where needed
 
 ### Testing
-- JUnit 5
+- JUnit 4
 - SLF4J Simple for test logging
 - In-memory storage (`RepoStorageInMemory`) for fast, isolated tests
 
