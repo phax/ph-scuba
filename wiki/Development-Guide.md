@@ -44,6 +44,5 @@ When adding a new module:
 
 | Project | What to reference |
 |---------|-------------------|
-| phive-central-tools | VES/VESStatus upload logic (being generalized into ph-scuba-phive) |
 | ph-diver | Repository storage abstraction, DVR coordinates |
 | phive | VES model, marshallers, validation engine |

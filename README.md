@@ -142,10 +142,10 @@ mvn clean install
 
 v0.8.0 - work in progress
 * Initial version
-* Extracted and generalized upload logic from phive-central-tools
+* Extracted and generalized upload logic from an internal tool
 * Content validation via Java SPI with recursive ZIP support
 * Built-in validators for XSD, Schematron, XSLT, and ZIP
-* Phive-specific validators for VES and VESStatus
+* phive-specific validators for VES and VESStatus
 * Configurable uploader settings (unknown extension handling, overwrite policy)
 
 ---

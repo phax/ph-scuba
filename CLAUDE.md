@@ -51,9 +51,6 @@ Optional phive-specific module. Provides SPI validators for `.ves` and `.status`
 - **phive** (`com.helger.phive`): VES/VESStatus model and engine (only in ph-scuba-phive)
 - **ph-commons** (`com.helger.commons`): Base utilities, error handling (`ErrorList`, `SingleError`), XML processing
 
-### Downstream consumer
-`../phive-central-tools` uses ph-scuba. Its `ICentralUploader extends IScubaUploader` adds VES-specific methods, and `CentralUploader` delegates to `ScubaUploader` + `PhiveUploader`.
-
 ## Wiki
 
 The `wiki/` folder contains design documentation. Update it when making material changes to module structure or architecture.

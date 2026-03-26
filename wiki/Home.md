@@ -5,7 +5,7 @@ It provides a reusable, modular Java library for uploading versioned artifacts i
 
 ## Motivation
 
-The [phive-central-tools](https://github.com/phax/phive-central-tools) project demonstrated the value of a structured upload pipeline for validation artifacts.
+An internal project demonstrated the value of a structured upload pipeline for validation artifacts.
 However, its upload logic is tightly coupled to the phive-central use case (VES definitions, Schematron rules, XSD schemas).
 
 ph-scuba extracts and generalizes the upload mechanics so that **any** diver-based repository can benefit from:
@@ -32,5 +32,4 @@ Note: ph-scuba is a library-only project. There is no standalone web application
 |---------|-------------|
 | [ph-diver](https://github.com/phax/ph-diver) | DVR coordinate system and repository storage abstraction |
 | [phive](https://github.com/phax/phive) | Philip Helger Integrative Validation Engine (VES, VESStatus) |
-| [phive-central-tools](https://github.com/phax/phive-central-tools) | Domain-specific uploader for phive-central (reference implementation) |
 | [ph-commons](https://github.com/phax/ph-commons) | Common Java utilities used throughout the ph-* ecosystem |

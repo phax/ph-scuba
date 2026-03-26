@@ -65,5 +65,3 @@ The `ph-scuba-phive` module bridges ph-scuba and phive:
 
 - **phive** provides VES/VESStatus domain models, marshallers, and the validation engine.
 - **ph-scuba-phive** registers `IUploadContentValidatorSPI` implementations for `.ves` and `.status` file types, and provides VES lifecycle convenience methods (deprecation, validity dates).
-
-This replaces the tightly-coupled logic currently in `phive-central-tools` (`CentralUploader` / `CentralUploadValidator`) with a modular, SPI-based implementation.
