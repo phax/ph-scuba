@@ -22,7 +22,7 @@
   <parent>
     <groupId>com.helger.scuba</groupId>
     <artifactId>scuba-parent-pom</artifactId>
-    <version>0.8.0</version>
+    <version>0.8.0-SNAPSHOT</version>
   </parent>
   <artifactId>ph-scuba-api</artifactId>
   <packaging>jar</packaging>
@@ -62,8 +62,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <scm>
-    <tag>scuba-parent-pom-0.8.0</tag>
-  </scm>
 </project>
