@@ -26,7 +26,7 @@
   </parent>
   <groupId>com.helger.scuba</groupId>
   <artifactId>scuba-parent-pom</artifactId>
-  <version>0.8.0-SNAPSHOT</version>
+  <version>0.8.0</version>
   <packaging>pom</packaging>
   <name>scuba-parent-pom</name>
   <description>ph-scuba - Secure Controlled Upload BAckend - Parent POM</description>
@@ -122,4 +122,8 @@
     <module>ph-scuba-core</module>
     <module>ph-scuba-phive</module>
   </modules>
+
+  <scm>
+    <tag>scuba-parent-pom-0.8.0</tag>
+  </scm>
 </project>
