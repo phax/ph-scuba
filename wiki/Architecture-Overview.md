@@ -52,16 +52,16 @@ This replaces the hard-coded `switch` statement in `CentralUploader._isContentVa
 
 ## Relationship to ph-diver
 
-SCUBA builds **on top of** ph-diver:
+ph-scuba builds **on top of** ph-diver:
 
 - **ph-diver** provides the storage abstraction (`IRepoStorage`), coordinate system (`DVRCoordinate`), and backend implementations.
-- **SCUBA** adds the upload pipeline layer: content validation via SPI, pre-upload checks, and a high-level upload API.
+- **ph-scuba** adds the upload pipeline layer: content validation via SPI, pre-upload checks, and a high-level upload API.
 
-ph-diver owns "how to store", SCUBA owns "how to upload safely".
+ph-diver owns "how to store", ph-scuba owns "how to upload safely".
 
 ## Relationship to phive
 
-The `ph-scuba-phive` module bridges SCUBA and phive:
+The `ph-scuba-phive` module bridges ph-scuba and phive:
 
 - **phive** provides VES/VESStatus domain models, marshallers, and the validation engine.
 - **ph-scuba-phive** registers `IUploadContentValidatorSPI` implementations for `.ves` and `.status` file types, and provides VES lifecycle convenience methods (deprecation, validity dates).

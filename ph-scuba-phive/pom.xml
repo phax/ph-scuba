@@ -22,12 +22,12 @@
   <parent>
     <groupId>com.helger.scuba</groupId>
     <artifactId>scuba-parent-pom</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
   </parent>
   <artifactId>ph-scuba-phive</artifactId>
   <packaging>jar</packaging>
   <name>ph-scuba-phive</name>
-  <description>SCUBA - Phive-specific content validators and VES upload logic</description>
+  <description>ph-scuba - Phive-specific content validators and VES upload logic</description>
   <inceptionYear>2026</inceptionYear>
 
   <licenses>

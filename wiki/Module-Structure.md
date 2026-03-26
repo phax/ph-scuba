@@ -1,6 +1,6 @@
 # Module Structure
 
-SCUBA follows the established ph-* Maven multi-module pattern.
+ph-scuba follows the established ph-* Maven multi-module pattern.
 
 ## Modules
 

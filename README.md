@@ -4,14 +4,14 @@ SCUBA - **S**ecure **C**ontrolled **U**pload **BA**ckend
 
 A generic, modular Java library for uploading versioned artifacts into [ph-diver](https://github.com/phax/ph-diver)-based (DVR - Digitally Versioned Resources) repositories.
 
-SCUBA provides a reusable upload pipeline with pluggable content validation, integrity verification, and support for multiple storage backends.
+ph-scuba provides a reusable upload pipeline with pluggable content validation, integrity verification, and support for multiple storage backends.
 
 ## Motivation
 
-The [phive-central-tools](https://github.com/phax/phive-central-tools) project demonstrated the value of a structured upload pipeline for validation artifacts.
+An internal project demonstrated the value of a structured upload pipeline for validation artifacts.
 However, its upload logic was tightly coupled to the phive-central use case (VES definitions, Schematron rules, XSD schemas).
 
-SCUBA extracts and generalizes the upload mechanics so that **any** diver-based repository can benefit from:
+ph-scuba extracts and generalizes the upload mechanics so that **any** diver-based repository can benefit from:
 - Validated, auditable uploads with pluggable content validation via Java SPI
 - Recursive content validation (e.g., validating files inside ZIP archives)
 - Content integrity verification (SHA-256 hashing)

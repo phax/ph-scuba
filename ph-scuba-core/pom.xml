@@ -22,12 +22,12 @@
   <parent>
     <groupId>com.helger.scuba</groupId>
     <artifactId>scuba-parent-pom</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.8.0-SNAPSHOT</version>
   </parent>
   <artifactId>ph-scuba-core</artifactId>
   <packaging>jar</packaging>
   <name>ph-scuba-core</name>
-  <description>SCUBA - Main business logic and upload pipeline</description>
+  <description>ph-scuba - Main business logic and upload pipeline</description>
   <inceptionYear>2026</inceptionYear>
 
   <licenses>

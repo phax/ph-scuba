@@ -2,7 +2,7 @@
 
 ## Storage Backend Selection
 
-SCUBA delegates actual storage to ph-diver's `IRepoStorage` implementations.
+ph-scuba delegates actual storage to ph-diver's `IRepoStorage` implementations.
 The consumer configures which backend(s) to use when creating the uploader.
 
 ### Local Filesystem

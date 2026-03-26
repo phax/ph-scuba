@@ -26,10 +26,10 @@
   </parent>
   <groupId>com.helger.scuba</groupId>
   <artifactId>scuba-parent-pom</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.8.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>scuba-parent-pom</name>
-  <description>SCUBA - Secure Controlled Upload BAckend - Parent POM</description>
+  <description>ph-scuba - Secure Controlled Upload BAckend - Parent POM</description>
   <inceptionYear>2026</inceptionYear>
 
   <licenses>

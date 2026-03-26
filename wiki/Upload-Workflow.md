@@ -1,6 +1,6 @@
 # Upload Workflow
 
-This page describes how artifacts flow through the SCUBA upload pipeline.
+This page describes how artifacts flow through the ph-scuba upload pipeline.
 
 ## Overview
 

@@ -1,6 +1,6 @@
-# SCUBA - Secure Controlled Upload BAckend
+# ph-scuba - Secure Controlled Upload BAckend
 
-SCUBA is a generic uploader module for [diver](https://github.com/phax/ph-diver)-based repositories.
+ph-scuba is a generic uploader module for [diver](https://github.com/phax/ph-diver)-based repositories.
 It provides a reusable, modular Java library for uploading versioned artifacts into DVR (Digitally Versioned Resources) repositories.
 
 ## Motivation
@@ -8,7 +8,7 @@ It provides a reusable, modular Java library for uploading versioned artifacts i
 The [phive-central-tools](https://github.com/phax/phive-central-tools) project demonstrated the value of a structured upload pipeline for validation artifacts.
 However, its upload logic is tightly coupled to the phive-central use case (VES definitions, Schematron rules, XSD schemas).
 
-SCUBA extracts and generalizes the upload mechanics so that **any** diver-based repository can benefit from:
+ph-scuba extracts and generalizes the upload mechanics so that **any** diver-based repository can benefit from:
 - Validated, auditable uploads
 - Content integrity verification (SHA-256 hashing)
 - Table of Contents (ToC) management
@@ -24,7 +24,7 @@ SCUBA extracts and generalizes the upload mechanics so that **any** diver-based 
 - [Configuration](Configuration.md) - Storage backends and uploader configuration
 - [Development Guide](Development-Guide.md) - Building, testing, and contributing
 
-Note: SCUBA is a library-only project. There is no standalone web application module.
+Note: ph-scuba is a library-only project. There is no standalone web application module.
 
 ## Related Projects
 

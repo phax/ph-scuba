@@ -1,6 +1,6 @@
 # Diver Concepts
 
-This page summarizes the key concepts from [ph-diver](https://github.com/phax/ph-diver) that SCUBA relies on.
+This page summarizes the key concepts from [ph-diver](https://github.com/phax/ph-diver) that ph-scuba relies on.
 
 ## DVR Coordinates
 

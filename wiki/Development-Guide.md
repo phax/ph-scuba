@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **Java 21+** (consistent with phoss-ap and current ph-* ecosystem)
+- **Java 17+** (consistent with phoss-ap and current ph-* ecosystem)
 - **Apache Maven 3.9+**
 - **Git**
 
@@ -14,7 +14,7 @@ mvn clean install
 
 ## Project Conventions
 
-SCUBA follows the conventions established across the ph-* ecosystem:
+ph-scuba follows the conventions established across the ph-* ecosystem:
 
 ### Code Style
 - Package root: `com.helger.scuba`
