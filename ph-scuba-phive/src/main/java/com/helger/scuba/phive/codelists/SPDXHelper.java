@@ -78,6 +78,11 @@ public final class SPDXHelper
   private SPDXHelper ()
   {}
 
+  /**
+   * Get the SPDX license list version.
+   *
+   * @return The list version string. Never <code>null</code> and never empty.
+   */
   @NonNull
   @Nonempty
   public static String getListVersion ()
@@ -85,6 +90,13 @@ public final class SPDXHelper
     return LIST_VERSION;
   }
 
+  /**
+   * Check if the provided SPDX ID is valid (case-insensitive).
+   *
+   * @param sID
+   *        The SPDX ID to check. May be <code>null</code>.
+   * @return {@code true} if the ID is contained in the SPDX list.
+   */
   public static boolean isSpdxIDValid (@Nullable final String sID)
   {
     if (StringHelper.isEmpty (sID))
@@ -92,6 +104,13 @@ public final class SPDXHelper
     return ID_TO_NAME.containsKey (_unify (sID));
   }
 
+  /**
+   * Get the SPDX license name for the given ID (case-insensitive).
+   *
+   * @param sID
+   *        The SPDX ID. May be <code>null</code>.
+   * @return The license name or <code>null</code> if not found.
+   */
   @Nullable
   public static String getSpdxNameOfID (@Nullable final String sID)
   {
@@ -100,6 +119,13 @@ public final class SPDXHelper
     return ID_TO_NAME.get (_unify (sID));
   }
 
+  /**
+   * Check if the provided SPDX license name is valid (case-insensitive).
+   *
+   * @param sName
+   *        The license name to check. May be <code>null</code>.
+   * @return {@code true} if the name is contained in the SPDX list.
+   */
   public static boolean isSpdxNameValid (@Nullable final String sName)
   {
     if (StringHelper.isEmpty (sName))
@@ -107,6 +133,13 @@ public final class SPDXHelper
     return NAME_TO_IDS.containsKey (_unify (sName));
   }
 
+  /**
+   * Get all SPDX IDs that match the given license name (case-insensitive).
+   *
+   * @param sName
+   *        The license name. May be <code>null</code>.
+   * @return The set of matching SPDX IDs, or <code>null</code> if the name is not found.
+   */
   @Nullable
   public static ICommonsSet <String> getAllSpdxIDsOfName (@Nullable final String sName)
   {

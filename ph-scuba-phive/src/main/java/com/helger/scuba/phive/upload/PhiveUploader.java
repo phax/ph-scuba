@@ -56,17 +56,29 @@ import com.helger.scuba.upload.ScubaUploader;
  */
 public class PhiveUploader
 {
+  /** The author name used in VES status history items. */
   public static final String AUTHOR_SYSTEM = "ph-scuba-phive";
 
   private static final Logger LOGGER = LoggerFactory.getLogger (PhiveUploader.class);
   private final ScubaUploader m_aUploader;
 
+  /**
+   * Constructor wrapping a {@link ScubaUploader} for phive-specific upload operations.
+   *
+   * @param aUploader
+   *        The scuba uploader to delegate to. May not be <code>null</code>.
+   */
   public PhiveUploader (@NonNull final ScubaUploader aUploader)
   {
     ValueEnforcer.notNull (aUploader, "Uploader");
     m_aUploader = aUploader;
   }
 
+  /**
+   * Get the underlying scuba uploader.
+   *
+   * @return The scuba uploader. Never <code>null</code>.
+   */
   @NonNull
   public ScubaUploader getUploader ()
   {
@@ -81,6 +93,14 @@ public class PhiveUploader
     return aMarshaller;
   }
 
+  /**
+   * Upload a VES definition to the repository. The DVR coordinate is extracted from the VES object.
+   *
+   * @param aVes
+   *        The VES to upload. May not be <code>null</code>.
+   * @throws IOException
+   *         On IO error
+   */
   public void addVES (@NonNull final VesType aVes) throws IOException
   {
     ValueEnforcer.notNull (aVes, "VES");
@@ -93,6 +113,15 @@ public class PhiveUploader
                                 VESLoader.FILE_EXT_VES);
   }
 
+  /**
+   * Upload a VES status definition to the repository. The DVR coordinate is extracted from the
+   * status object.
+   *
+   * @param aVESStatus
+   *        The VES status to upload. May not be <code>null</code>.
+   * @throws IOException
+   *         On IO error
+   */
   public void addVESStatus (@NonNull final VesStatusType aVESStatus) throws IOException
   {
     ValueEnforcer.notNull (aVESStatus, "VESStatus");
@@ -104,6 +133,19 @@ public class PhiveUploader
                                 VESLoader.FILE_EXT_STATUS);
   }
 
+  /**
+   * Mark a VES as deprecated. Reads the existing status (or creates a new one), sets the deprecated
+   * flag and optionally a deprecation reason and replacement VESID, then writes it back.
+   *
+   * @param aVESID
+   *        The VESID to deprecate. Must be a static version. May not be <code>null</code>.
+   * @param sDeprecationReason
+   *        Optional deprecation reason. May be <code>null</code>.
+   * @param aReplacementVESID
+   *        Optional replacement VESID. May be <code>null</code>.
+   * @return {@link EChange#CHANGED} if the deprecation was applied, {@link EChange#UNCHANGED} if
+   *         already deprecated or write failed.
+   */
   @NonNull
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID,
                                    @Nullable final String sDeprecationReason,
@@ -172,6 +214,16 @@ public class PhiveUploader
     return EChange.CHANGED;
   }
 
+  /**
+   * Mark a VES as deprecated without specifying a replacement.
+   *
+   * @param aVESID
+   *        The VESID to deprecate. Must be a static version. May not be <code>null</code>.
+   * @param sDeprecationReason
+   *        Optional deprecation reason. May be <code>null</code>.
+   * @return {@link EChange#CHANGED} if the deprecation was applied, {@link EChange#UNCHANGED} if
+   *         already deprecated or write failed.
+   */
   @NonNull
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID, @Nullable final String sDeprecationReason)
   {
@@ -184,6 +236,21 @@ public class PhiveUploader
     return aODT == null ? null : aODT.toOffsetDateTime ();
   }
 
+  /**
+   * Set the validity dates of a VES. Reads the existing status (or creates a new one), updates the
+   * validFrom/validTo dates, then writes it back.
+   *
+   * @param aVESID
+   *        The VESID to update. Must be a static version. May not be <code>null</code>.
+   * @param aValidFrom
+   *        The validity start date. May be <code>null</code> but at least one of validFrom/validTo
+   *        must be set.
+   * @param aValidTo
+   *        The validity end date. May be <code>null</code> but at least one of validFrom/validTo
+   *        must be set.
+   * @return {@link EChange#CHANGED} if the dates were updated, {@link EChange#UNCHANGED} if
+   *         unchanged or write failed.
+   */
   @NonNull
   public EChange setVESValidityDate (@NonNull final DVRCoordinate aVESID,
                                      @Nullable final OffsetDateTime aValidFrom,

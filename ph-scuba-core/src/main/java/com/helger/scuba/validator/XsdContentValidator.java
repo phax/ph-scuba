@@ -43,7 +43,12 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
 @IsSPIImplementation
 public final class XsdContentValidator implements IUploadContentValidatorSPI
 {
+  /** The file extension handled by this validator. */
   public static final String FILE_EXT_XSD = ".xsd";
+
+  /** Default constructor. */
+  public XsdContentValidator ()
+  {}
   private static final String EXPECTED_LOCAL_NAME = "schema";
   private static final String EXPECTED_NAMESPACE_URI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
 

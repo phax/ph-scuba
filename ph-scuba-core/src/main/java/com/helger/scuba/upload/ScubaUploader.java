@@ -117,7 +117,9 @@ public class ScubaUploader implements IScubaUploader
   }
 
   /**
-   * @return The content validator used by this uploader. Never <code>null</code>.
+   * Get the content validator used by this uploader.
+   *
+   * @return The content validator. Never <code>null</code>.
    */
   @NonNull
   public UploadContentValidator getContentValidator ()
@@ -126,7 +128,9 @@ public class ScubaUploader implements IScubaUploader
   }
 
   /**
-   * @return A copy of the settings used by this uploader. Never <code>null</code>.
+   * Get a copy of the settings used by this uploader.
+   *
+   * @return A defensive copy of the settings. Never <code>null</code>.
    */
   @NonNull
   @ReturnsMutableCopy
@@ -273,7 +277,9 @@ public class ScubaUploader implements IScubaUploader
   }
 
   /**
-   * @return The underlying repository storage with ToC support. Never <code>null</code>.
+   * Get the underlying repository storage with ToC support.
+   *
+   * @return The repository storage. Never <code>null</code>.
    */
   @NonNull
   public IRepoStorageWithToc getRepoStorageWithToc ()

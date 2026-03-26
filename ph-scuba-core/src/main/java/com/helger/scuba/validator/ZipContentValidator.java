@@ -46,7 +46,12 @@ import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 @IsSPIImplementation
 public final class ZipContentValidator implements IUploadContentValidatorSPI
 {
+  /** The file extension handled by this validator. */
   public static final String FILE_EXT_ZIP = ".zip";
+
+  /** Default constructor. */
+  public ZipContentValidator ()
+  {}
 
   private static final Logger LOGGER = LoggerFactory.getLogger (ZipContentValidator.class);
 

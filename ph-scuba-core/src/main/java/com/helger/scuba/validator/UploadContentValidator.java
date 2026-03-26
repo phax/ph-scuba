@@ -51,6 +51,13 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
   private static final Logger LOGGER = LoggerFactory.getLogger (UploadContentValidator.class);
   private final ICommonsList <IUploadContentValidatorSPI> m_aValidators;
 
+  /**
+   * Constructor. Loads all {@link IUploadContentValidatorSPI} implementations via
+   * {@link ServiceLoader} and initializes them with the provided repository storage.
+   *
+   * @param aRepo
+   *        The repository storage. May not be <code>null</code>.
+   */
   public UploadContentValidator (@NonNull final IRepoStorageWithToc aRepo)
   {
     ValueEnforcer.notNull (aRepo, "Repo");

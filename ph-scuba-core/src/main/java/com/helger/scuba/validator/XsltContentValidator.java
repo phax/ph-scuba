@@ -41,7 +41,12 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
 @IsSPIImplementation
 public final class XsltContentValidator implements IUploadContentValidatorSPI
 {
+  /** The file extension handled by this validator. */
   public static final String FILE_EXT_XSLT = ".xslt";
+
+  /** Default constructor. */
+  public XsltContentValidator ()
+  {}
   private static final String EXPECTED_LOCAL_NAME = "stylesheet";
   private static final String EXPECTED_NAMESPACE_URI = "http://www.w3.org/1999/XSL/Transform";
 

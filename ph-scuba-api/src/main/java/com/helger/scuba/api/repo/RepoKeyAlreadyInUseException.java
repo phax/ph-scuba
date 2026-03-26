@@ -24,6 +24,12 @@ package com.helger.scuba.api.repo;
  */
 public class RepoKeyAlreadyInUseException extends RepoRuntimeException
 {
+  /**
+   * Constructor with error message.
+   *
+   * @param sMsg
+   *        The error message. May be <code>null</code>.
+   */
   public RepoKeyAlreadyInUseException (final String sMsg)
   {
     super (sMsg);

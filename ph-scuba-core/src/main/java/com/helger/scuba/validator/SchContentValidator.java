@@ -38,7 +38,12 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
 @IsSPIImplementation
 public final class SchContentValidator implements IUploadContentValidatorSPI
 {
+  /** The file extension handled by this validator. */
   public static final String FILE_EXT_SCH = ".sch";
+
+  /** Default constructor. */
+  public SchContentValidator ()
+  {}
 
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()

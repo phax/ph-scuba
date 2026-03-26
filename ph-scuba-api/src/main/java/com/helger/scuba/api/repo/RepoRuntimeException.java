@@ -23,6 +23,12 @@ package com.helger.scuba.api.repo;
  */
 public class RepoRuntimeException extends RuntimeException
 {
+  /**
+   * Constructor with error message.
+   *
+   * @param sMsg
+   *        The error message. May be <code>null</code>.
+   */
   public RepoRuntimeException (final String sMsg)
   {
     super (sMsg);

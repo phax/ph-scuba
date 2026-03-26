@@ -46,6 +46,10 @@ import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 @IsSPIImplementation
 public final class VesStatusContentValidator implements IUploadContentValidatorSPI
 {
+  /** Default constructor. */
+  public VesStatusContentValidator ()
+  {}
+
   private IRepoStorageWithToc m_aRepo;
 
   @NonNull

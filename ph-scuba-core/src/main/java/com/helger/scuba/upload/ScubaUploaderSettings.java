@@ -41,10 +41,15 @@ public class ScubaUploaderSettings
   private boolean m_bAllowUploadWithUnknownExtension = DEFAULT_ALLOW_UPLOAD_WITH_UNKNOWN_EXTENSION;
   private boolean m_bAllowOverwriteExisting = DEFAULT_ALLOW_OVERWRITE_EXISTING;
 
+  /**
+   * Default constructor with all default settings.
+   */
   public ScubaUploaderSettings ()
   {}
 
   /**
+   * Check if artifacts with unknown file extensions are allowed.
+   *
    * @return {@code true} if artifacts with unknown file extensions (no SPI validator registered)
    *         are allowed to be uploaded without content validation, {@code false} if they should be
    *         rejected. Default is {@value #DEFAULT_ALLOW_UPLOAD_WITH_UNKNOWN_EXTENSION}.
@@ -70,6 +75,8 @@ public class ScubaUploaderSettings
   }
 
   /**
+   * Check if existing artifacts may be overwritten.
+   *
    * @return {@code true} if existing artifacts may be overwritten, {@code false} if uploading to an
    *         existing key should be rejected. Default is {@value #DEFAULT_ALLOW_OVERWRITE_EXISTING}.
    */
@@ -105,6 +112,11 @@ public class ScubaUploaderSettings
     setAllowOverwriteExisting (aOther.isAllowOverwriteExisting ());
   }
 
+  /**
+   * Create a deep copy of these settings.
+   *
+   * @return A new mutable copy. Never <code>null</code>.
+   */
   @NonNull
   @ReturnsMutableCopy
   public ScubaUploaderSettings getClone ()
