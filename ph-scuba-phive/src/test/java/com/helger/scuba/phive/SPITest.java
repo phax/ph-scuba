@@ -20,6 +20,11 @@ import org.junit.Test;
 
 import com.helger.unittestext.SPITestHelper;
 
+/**
+ * Test SPI definitions of ph-scuba-phive.
+ *
+ * @author Philip Helger
+ */
 public final class SPITest
 {
   @Test

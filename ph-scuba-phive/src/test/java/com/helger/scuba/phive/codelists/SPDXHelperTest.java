@@ -25,6 +25,11 @@ import java.util.Set;
 import org.jspecify.annotations.NonNull;
 import org.junit.Test;
 
+/**
+ * Test class for {@link SPDXHelper}.
+ *
+ * @author Philip Helger
+ */
 public final class SPDXHelperTest
 {
   private static void _testOnlyOneInSet (@NonNull final String s, @NonNull final Set <String> aSet)

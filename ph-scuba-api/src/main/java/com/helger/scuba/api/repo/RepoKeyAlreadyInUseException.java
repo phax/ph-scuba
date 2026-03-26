@@ -16,6 +16,12 @@
  */
 package com.helger.scuba.api.repo;
 
+/**
+ * Exception thrown when attempting to upload an artifact to a repository key that is already
+ * occupied.
+ *
+ * @author Philip Helger
+ */
 public class RepoKeyAlreadyInUseException extends RepoRuntimeException
 {
   public RepoKeyAlreadyInUseException (final String sMsg)

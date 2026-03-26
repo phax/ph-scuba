@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.helger.annotation.Nonempty;
 import com.helger.annotation.Nonnegative;
+import com.helger.annotation.style.ReturnsMutableCopy;
 import com.helger.base.enforce.ValueEnforcer;
 import com.helger.base.state.EValidity;
 import com.helger.base.string.StringHelper;
@@ -78,12 +79,35 @@ public class ScubaUploader implements IScubaUploader
   private static final Logger LOGGER = LoggerFactory.getLogger (ScubaUploader.class);
   private final IRepoStorageWithToc m_aRepo;
   private final UploadContentValidator m_aContentValidator;
+  private final ScubaUploaderSettings m_aSettings;
 
+  /**
+   * Create a new uploader with default settings.
+   *
+   * @param aRepo
+   *        The repository storage to use. May not be <code>null</code>.
+   */
   public ScubaUploader (@NonNull final IRepoStorageWithToc aRepo)
   {
+    this (aRepo, new ScubaUploaderSettings ());
+  }
+
+  /**
+   * Create a new uploader with custom settings.
+   *
+   * @param aRepo
+   *        The repository storage to use. May not be <code>null</code>.
+   * @param aSettings
+   *        The settings to apply. May not be <code>null</code>. The settings are copied internally.
+   */
+  public ScubaUploader (@NonNull final IRepoStorageWithToc aRepo, @NonNull final ScubaUploaderSettings aSettings)
+  {
     ValueEnforcer.notNull (aRepo, "Repo");
+    ValueEnforcer.notNull (aSettings, "Settings");
     m_aRepo = aRepo;
     m_aContentValidator = new UploadContentValidator (aRepo);
+    // Defensive copy
+    m_aSettings = aSettings.getClone ();
   }
 
   @NonNull
@@ -101,6 +125,16 @@ public class ScubaUploader implements IScubaUploader
     return m_aContentValidator;
   }
 
+  /**
+   * @return A copy of the settings used by this uploader. Never <code>null</code>.
+   */
+  @NonNull
+  @ReturnsMutableCopy
+  public ScubaUploaderSettings getSettings ()
+  {
+    return m_aSettings.getClone ();
+  }
+
   @NonNull
   private static String _getFileExt (@NonNull final IReadableResource aPayload)
   {
@@ -112,10 +146,18 @@ public class ScubaUploader implements IScubaUploader
   {
     ValueEnforcer.notNull (aPayload, "Payload");
 
+    final String sFileExt = _getFileExt (aPayload);
+
+    if (!m_aContentValidator.hasValidatorForExtension (sFileExt))
+    {
+      // No validator available - validity depends on settings
+      return EValidity.valueOf (m_aSettings.isAllowUploadWithUnknownExtension ());
+    }
+
     final IRepoStorageContent aContent = new RepoStorageContentFromReadableResource (aPayload);
     final ErrorList aErrorList = new ErrorList ();
     final boolean bValid = m_aContentValidator.validateContent ("",
-                                                                _getFileExt (aPayload),
+                                                                sFileExt,
                                                                 aContent.getBufferedInputStream (),
                                                                 aErrorList);
     if (!bValid)
@@ -127,27 +169,50 @@ public class ScubaUploader implements IScubaUploader
                                 @NonNull final IRepoStorageContent aContent,
                                 @NonNull @Nonempty final String sFileExt) throws IOException
   {
-    final ErrorList aErrorList = new ErrorList ();
-    if (!m_aContentValidator.validateContent (aCoordinate.getAsSingleID (),
-                                              sFileExt,
-                                              aContent.getBufferedInputStream (),
-                                              aErrorList))
+    // Content validation
+    if (m_aContentValidator.hasValidatorForExtension (sFileExt))
     {
-      // Log all collected errors
-      aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
-      throw new IllegalStateException ("Data for coordinate '" +
-                                       aCoordinate.getAsSingleID () +
-                                       "' does not match expectations of the file extension ('" +
-                                       sFileExt +
-                                       "') - see log for details");
+      final ErrorList aErrorList = new ErrorList ();
+      if (!m_aContentValidator.validateContent (aCoordinate.getAsSingleID (),
+                                                sFileExt,
+                                                aContent.getBufferedInputStream (),
+                                                aErrorList))
+      {
+        // Log all collected errors
+        aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
+        throw new IllegalStateException ("Data for coordinate '" +
+                                         aCoordinate.getAsSingleID () +
+                                         "' does not match expectations of the file extension ('" +
+                                         sFileExt +
+                                         "') - see log for details");
+      }
+    }
+    else
+    {
+      // No validator registered for this file extension
+      if (!m_aSettings.isAllowUploadWithUnknownExtension ())
+      {
+        throw new IllegalArgumentException ("Unsupported file extension '" +
+                                            sFileExt +
+                                            "' - no content validator registered and upload of unknown extensions is disabled");
+      }
+
+      LOGGER.warn ("No content validator for file extension '" + sFileExt + "' - uploading without validation");
     }
 
     // Create StorageKey
     final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, sFileExt);
 
-    // This check is essential
+    // Duplicate check
     if (m_aRepo.exists (aKey))
-      throw new RepoKeyAlreadyInUseException ("A resource with key '" + aKey.getPath () + "' is already in the Repo");
+    {
+      if (!m_aSettings.isAllowOverwriteExisting ())
+      {
+        throw new RepoKeyAlreadyInUseException ("A resource with key '" + aKey.getPath () + "' is already in the Repo");
+      }
+
+      LOGGER.warn ("Overwriting existing resource with key '" + aKey.getPath () + "'");
+    }
 
     // Write data to Repo
     if (m_aRepo.write (aKey, aContent).isFailure ())

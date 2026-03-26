@@ -28,6 +28,11 @@ import org.junit.Test;
 import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
+/**
+ * Test class for {@link ZipContentValidator}.
+ *
+ * @author Philip Helger
+ */
 public final class ZipContentValidatorTest
 {
   private static final ZipContentValidator VALIDATOR = new ZipContentValidator ();

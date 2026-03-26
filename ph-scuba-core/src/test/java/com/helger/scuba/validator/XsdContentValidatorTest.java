@@ -27,6 +27,11 @@ import org.junit.Test;
 import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
+/**
+ * Test class for {@link XsdContentValidator}.
+ *
+ * @author Philip Helger
+ */
 public final class XsdContentValidatorTest
 {
   private static final XsdContentValidator VALIDATOR = new XsdContentValidator ();

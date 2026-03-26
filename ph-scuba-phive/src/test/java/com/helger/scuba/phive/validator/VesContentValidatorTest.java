@@ -31,6 +31,11 @@ import com.helger.diver.repo.ERepoWritable;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.phive.ves.engine.load.VESLoader;
 
+/**
+ * Test class for {@link VesContentValidator}.
+ *
+ * @author Philip Helger
+ */
 public final class VesContentValidatorTest
 {
   private static VesContentValidator _createValidator ()

@@ -34,6 +34,11 @@ import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 
+/**
+ * Test class for {@link UploadContentValidator}.
+ *
+ * @author Philip Helger
+ */
 public final class UploadContentValidatorTest
 {
   @NonNull

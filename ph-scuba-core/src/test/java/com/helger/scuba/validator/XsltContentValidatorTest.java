@@ -26,6 +26,11 @@ import org.junit.Test;
 import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
+/**
+ * Test class for {@link XsltContentValidator}.
+ *
+ * @author Philip Helger
+ */
 public final class XsltContentValidatorTest
 {
   private static final XsltContentValidator VALIDATOR = new XsltContentValidator ();

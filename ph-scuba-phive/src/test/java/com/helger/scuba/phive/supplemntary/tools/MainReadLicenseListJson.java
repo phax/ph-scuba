@@ -31,6 +31,12 @@ import com.helger.xml.microdom.IMicroElement;
 import com.helger.xml.microdom.MicroDocument;
 import com.helger.xml.microdom.serialize.MicroWriter;
 
+/**
+ * Tool to download the SPDX license list from GitHub and convert it to the internal XML format used
+ * by {@link com.helger.scuba.phive.codelists.SPDXHelper}.
+ *
+ * @author Philip Helger
+ */
 public class MainReadLicenseListJson
 {
   private static final Logger LOGGER = LoggerFactory.getLogger (MainReadLicenseListJson.class);

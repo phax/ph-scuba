@@ -16,6 +16,11 @@
  */
 package com.helger.scuba.api.repo;
 
+/**
+ * Base runtime exception for repository operations.
+ *
+ * @author Philip Helger
+ */
 public class RepoRuntimeException extends RuntimeException
 {
   public RepoRuntimeException (final String sMsg)
