@@ -39,6 +39,7 @@ import com.helger.io.file.FilenameHelper;
 import com.helger.io.resource.IReadableResource;
 import com.helger.scuba.api.IScubaUploader;
 import com.helger.scuba.api.repo.RepoKeyAlreadyInUseException;
+import com.helger.scuba.api.repo.ScubaException;
 import com.helger.scuba.validator.UploadContentValidator;
 
 /**
@@ -174,7 +175,7 @@ public class ScubaUploader implements IScubaUploader
 
   private void _uploadResource (@NonNull final DVRCoordinate aCoordinate,
                                 @NonNull final IRepoStorageContent aContent,
-                                @NonNull @Nonempty final String sFileExt) throws IOException
+                                @NonNull @Nonempty final String sFileExt) throws IOException, ScubaException
   {
     // Content validation
     if (m_aContentValidator.hasValidatorForExtension (sFileExt))
@@ -227,7 +228,8 @@ public class ScubaUploader implements IScubaUploader
   }
 
   public void addResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final IReadableResource aPayload)
-                                                                                                                throws IOException
+                                                                                                                throws IOException,
+                                                                                                                ScubaException
   {
     ValueEnforcer.notNull (aCoordinate, "Coordinate");
     ValueEnforcer.notNull (aPayload, "Payload");
@@ -251,10 +253,12 @@ public class ScubaUploader implements IScubaUploader
    *        The file extension including the leading dot. May not be <code>null</code>.
    * @throws IOException
    *         On IO error
+   * @throws ScubaException
+   *         If some scuba constraints don't match
    */
   public void uploadResource (@NonNull final DVRCoordinate aCoordinate,
                               @NonNull final IRepoStorageContent aContent,
-                              @NonNull @Nonempty final String sFileExt) throws IOException
+                              @NonNull @Nonempty final String sFileExt) throws IOException, ScubaException
   {
     ValueEnforcer.notNull (aCoordinate, "Coordinate");
     ValueEnforcer.notNull (aContent, "Content");
@@ -280,16 +284,5 @@ public class ScubaUploader implements IScubaUploader
     // Delete from Repo
     if (m_aRepo.delete (aKey).isFailure ())
       LOGGER.warn ("Failed to delete " + aKey);
-  }
-
-  /**
-   * Get the underlying repository storage with ToC support.
-   *
-   * @return The repository storage. Never <code>null</code>.
-   */
-  @NonNull
-  public IRepoStorageWithToc getRepoStorageWithToc ()
-  {
-    return m_aRepo;
   }
 }

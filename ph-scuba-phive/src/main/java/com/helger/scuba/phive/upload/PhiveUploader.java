@@ -46,6 +46,7 @@ import com.helger.phive.ves.v10.VesStatusHistoryType;
 import com.helger.phive.ves.v10.VesStatusReplacementType;
 import com.helger.phive.ves.v10.VesStatusType;
 import com.helger.phive.ves.v10.VesType;
+import com.helger.scuba.api.repo.ScubaException;
 import com.helger.scuba.upload.ScubaUploader;
 
 /**
@@ -100,8 +101,10 @@ public class PhiveUploader
    *        The VES to upload. May not be <code>null</code>.
    * @throws IOException
    *         On IO error
+   * @throws ScubaException
+   *         If some scuba constraints don't match
    */
-  public void addVES (@NonNull final VesType aVes) throws IOException
+  public void addVES (@NonNull final VesType aVes) throws IOException, ScubaException
   {
     ValueEnforcer.notNull (aVes, "VES");
 
@@ -121,8 +124,10 @@ public class PhiveUploader
    *        The VES status to upload. May not be <code>null</code>.
    * @throws IOException
    *         On IO error
+   * @throws ScubaException
+   *         If some scuba constraints don't match
    */
-  public void addVESStatus (@NonNull final VesStatusType aVESStatus) throws IOException
+  public void addVESStatus (@NonNull final VesStatusType aVESStatus) throws IOException, ScubaException
   {
     ValueEnforcer.notNull (aVESStatus, "VESStatus");
 
@@ -155,7 +160,7 @@ public class PhiveUploader
     ValueEnforcer.isTrue (aVESID.getVersionObj ().isStaticVersion (), "Cannot set a pseudo version as deprecated");
 
     final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
-    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorageWithToc ().read (aStatusKey);
+    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorage ().read (aStatusKey);
     final VesStatusType aStatus;
     if (aOldReadStatus != null)
     {
@@ -202,7 +207,7 @@ public class PhiveUploader
     aStatus.getHistory ().addHistoryItem (aHistoryItem);
 
     // Upload updated version
-    if (m_aUploader.getRepoStorageWithToc ()
+    if (m_aUploader.getRepoStorage ()
                    .write (aStatusKey,
                            RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VESStatus1Marshaller ()).getAsBytes (aStatus)))
                    .isFailure ())
@@ -263,7 +268,7 @@ public class PhiveUploader
       ValueEnforcer.isTrue (aValidFrom.compareTo (aValidTo) <= 0, "ValidFrom must not be after ValidTo");
 
     final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
-    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorageWithToc ().read (aStatusKey);
+    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorage ().read (aStatusKey);
     final VesStatusType aStatus;
     if (aOldReadStatus != null)
     {
@@ -304,7 +309,7 @@ public class PhiveUploader
     aStatus.getHistory ().addHistoryItem (aHistoryItem);
 
     // Upload updated version
-    if (m_aUploader.getRepoStorageWithToc ()
+    if (m_aUploader.getRepoStorage ()
                    .write (aStatusKey,
                            RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VESStatus1Marshaller ()).getAsBytes (aStatus)))
                    .isFailure ())

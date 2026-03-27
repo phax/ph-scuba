@@ -16,12 +16,14 @@
  */
 package com.helger.scuba.api.repo;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Base runtime exception for repository operations.
  *
  * @author Philip Helger
  */
-public class RepoRuntimeException extends RuntimeException
+public class ScubaException extends Exception
 {
   /**
    * Constructor with error message.
@@ -29,8 +31,21 @@ public class RepoRuntimeException extends RuntimeException
    * @param sMsg
    *        The error message. May be <code>null</code>.
    */
-  public RepoRuntimeException (final String sMsg)
+  public ScubaException (final String sMsg)
   {
     super (sMsg);
+  }
+
+  /**
+   * Constructor with error message.
+   *
+   * @param sMsg
+   *        The error message. May be <code>null</code>.
+   * @param aCause
+   *        The exception causing this exception. May be <code>null</code>.
+   */
+  public ScubaException (final String sMsg, @Nullable final Exception aCause)
+  {
+    super (sMsg, aCause);
   }
 }

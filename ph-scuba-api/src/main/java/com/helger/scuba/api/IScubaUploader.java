@@ -24,6 +24,7 @@ import com.helger.base.state.EValidity;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.io.resource.IReadableResource;
+import com.helger.scuba.api.repo.ScubaException;
 
 /**
  * Generic interface for uploading artifacts to a diver-based repository.
@@ -62,8 +63,11 @@ public interface IScubaUploader
    *        The payload to upload. May not be <code>null</code>.
    * @throws IOException
    *         On IO error
+   * @throws ScubaException
+   *         If some scuba constraints don't match
    */
-  void addResource (@NonNull DVRCoordinate aCoordinate, @NonNull IReadableResource aPayload) throws IOException;
+  void addResource (@NonNull DVRCoordinate aCoordinate, @NonNull IReadableResource aPayload) throws IOException,
+                                                                                             ScubaException;
 
   /**
    * Check if a resource with the given coordinate and file extension exists.

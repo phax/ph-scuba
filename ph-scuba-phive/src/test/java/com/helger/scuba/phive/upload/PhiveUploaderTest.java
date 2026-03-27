@@ -17,10 +17,12 @@
 package com.helger.scuba.phive.upload;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
@@ -34,14 +36,18 @@ import com.helger.diver.api.version.DVRVersion;
 import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
 import com.helger.diver.repo.IRepoStorageReadItem;
+import com.helger.diver.repo.RepoStorageContentByteArray;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.model.v1.VESStatus1Marshaller;
+import com.helger.phive.ves.v10.VesResourceType;
 import com.helger.phive.ves.v10.VesStatusHistoryItemType;
 import com.helger.phive.ves.v10.VesStatusHistoryType;
 import com.helger.phive.ves.v10.VesStatusType;
+import com.helger.phive.ves.v10.VesType;
+import com.helger.phive.ves.v10.VesXsdType;
 import com.helger.scuba.upload.ScubaUploader;
 import com.helger.scuba.upload.ScubaUploaderSettings;
 
@@ -92,6 +98,58 @@ public final class PhiveUploaderTest
     final ScubaUploader aUploader = new ScubaUploader (aRepo);
     final PhiveUploader aPhiveUploader = new PhiveUploader (aUploader);
     assertEquals (aUploader, aPhiveUploader.getUploader ());
+  }
+
+  // -- addVES tests --
+
+  @Test
+  public void testAddVESWithXsdValidation () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // Step 1: Upload a valid XSD to the repo at the coordinate the VES will reference
+    final DVRCoordinate aXsdCoord = new DVRCoordinate ("com.test", "mini", DVRVersion.parseOrNull ("1.0"));
+    final String sXsd = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                        "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"\n" +
+                        "           xmlns=\"urn:test\"\n" +
+                        "           targetNamespace=\"urn:test\"\n" +
+                        "           elementFormDefault=\"qualified\">\n" +
+                        "  <xs:element name=\"root\" type=\"xs:string\" />\n" +
+                        "</xs:schema>\n";
+    aRepo.write (RepoStorageKeyOfArtefact.of (aXsdCoord, ".xsd"),
+                 RepoStorageContentByteArray.of (sXsd.getBytes (StandardCharsets.UTF_8)));
+
+    // Step 2: Build a VES that uses XSD validation referencing the uploaded XSD
+    final DVRCoordinate aVesCoord = new DVRCoordinate ("com.test", "myves-xsd", DVRVersion.parseOrNull ("1.0"));
+
+    final VesResourceType aResource = new VesResourceType ();
+    aResource.setGroupId (aXsdCoord.getGroupID ());
+    aResource.setArtifactId (aXsdCoord.getArtifactID ());
+    aResource.setVersion (aXsdCoord.getVersionString ());
+    aResource.setType ("xsd");
+
+    final VesXsdType aXsdDef = new VesXsdType ();
+    aXsdDef.setResource (aResource);
+
+    final VesType aVes = new VesType ();
+    aVes.setGroupId (aVesCoord.getGroupID ());
+    aVes.setArtifactId (aVesCoord.getArtifactID ());
+    aVes.setVersion (aVesCoord.getVersionString ());
+    aVes.setName ("Test XSD VES");
+    aVes.setXsd (aXsdDef);
+
+    // Step 3: Upload via PhiveUploader - goes through full validation pipeline
+    aPhiveUploader.addVES (aVes);
+
+    // Verify it was stored
+    assertTrue (aRepo.exists (RepoStorageKeyOfArtefact.of (aVesCoord, VESLoader.FILE_EXT_VES)));
+
+    // Delete the artefact again
+    new ScubaUploader (aRepo).deleteResource (aVesCoord, VESLoader.FILE_EXT_VES);
+
+    // Verify it was deleted again
+    assertFalse (aRepo.exists (RepoStorageKeyOfArtefact.of (aVesCoord, VESLoader.FILE_EXT_VES)));
   }
 
   // -- addVESStatus tests --
@@ -197,9 +255,7 @@ public final class PhiveUploaderTest
     aInitial.setHistory (new VesStatusHistoryType ());
 
     // First set validity dates so the status exists in repo
-    aPhiveUploader.setVESValidityDate (aCoord,
-                                       OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC),
-                                       null);
+    aPhiveUploader.setVESValidityDate (aCoord, OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), null);
 
     // Now deprecate - should update existing status
     assertEquals (EChange.CHANGED, aPhiveUploader.setVESDeprecated (aCoord, "End of life"));

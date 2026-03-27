@@ -22,7 +22,7 @@ package com.helger.scuba.api.repo;
  *
  * @author Philip Helger
  */
-public class RepoKeyAlreadyInUseException extends RepoRuntimeException
+public class RepoKeyAlreadyInUseException extends ScubaException
 {
   /**
    * Constructor with error message.
