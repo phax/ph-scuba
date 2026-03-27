@@ -21,13 +21,14 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.helger.scuba</groupId>
-    <artifactId>scuba-parent-pom</artifactId>
+    <artifactId>ph-scuba-parent-pom</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>ph-scuba-api</artifactId>
   <packaging>jar</packaging>
   <name>ph-scuba-api</name>
   <description>ph-scuba - Generic upload and content validation API</description>
+  <url>https://github.com/phax/ph-scuba/ph-scuba-api</url>
   <inceptionYear>2026</inceptionYear>
 
   <licenses>
