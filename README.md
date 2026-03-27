@@ -140,7 +140,7 @@ mvn clean install
 
 ## News and Noteworthy
 
-v0.8.0 - work in progress
+v1.0.0 - 2026-03-27
 * Initial version
 * Extracted and generalized upload logic from an internal tool
 * Content validation via Java SPI with recursive ZIP support
