@@ -1,7 +1,7 @@
 # ph-scuba
 
 <!-- ph-badge-start -->
-[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.helger.scuba/scuba-parent-pom/badge.svg)](https://maven-badges.sml.io/sonatype-central/com.helger.scuba/scuba-parent-pom/)
+[![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.helger.scuba/ph-scuba-parent-pom/badge.svg)](https://maven-badges.sml.io/sonatype-central/com.helger.scuba/ph-scuba-parent-pom/)
 [![javadoc](https://javadoc.io/badge2/com.helger.scuba/ph-scuba-api/javadoc.svg)](https://javadoc.io/doc/com.helger.scuba/ph-scuba-api)
 <!-- ph-badge-end -->
 
