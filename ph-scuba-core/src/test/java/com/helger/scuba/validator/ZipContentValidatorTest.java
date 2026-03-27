@@ -90,6 +90,7 @@ public final class ZipContentValidatorTest
    * Create a {@link ZipContentValidator} wired with a simple registry that supports .zip and .xsd
    * validation recursively.
    */
+  @NonNull
   private static ZipContentValidator _createValidatorWithRegistry ()
   {
     final ZipContentValidator aZipValidator = new ZipContentValidator ();
