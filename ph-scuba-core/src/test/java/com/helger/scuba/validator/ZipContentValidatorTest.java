@@ -18,7 +18,6 @@ package com.helger.scuba.validator;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -26,6 +25,7 @@ import java.util.zip.ZipOutputStream;
 import org.junit.Test;
 
 import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
+import com.helger.base.io.nonblocking.NonBlockingByteArrayOutputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 
 /**
@@ -40,7 +40,7 @@ public final class ZipContentValidatorTest
   @Test
   public void testValidZip () throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream ();
+    final NonBlockingByteArrayOutputStream baos = new NonBlockingByteArrayOutputStream ();
     try (final ZipOutputStream zos = new ZipOutputStream (baos))
     {
       zos.putNextEntry (new ZipEntry ("test.txt"));
@@ -49,21 +49,21 @@ public final class ZipContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertTrue (VALIDATOR.isValidContent (".zip", new NonBlockingByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertTrue (VALIDATOR.isValidContent (".zip", baos.getAsInputStream (), aErrors));
     assertTrue (aErrors.isEmpty ());
   }
 
   @Test
   public void testEmptyZip () throws Exception
   {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream ();
+    final NonBlockingByteArrayOutputStream baos = new NonBlockingByteArrayOutputStream ();
     try (final ZipOutputStream zos = new ZipOutputStream (baos))
     {
       // empty
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertTrue (VALIDATOR.isValidContent (".zip", new NonBlockingByteArrayInputStream (baos.toByteArray ()), aErrors));
+    assertTrue (VALIDATOR.isValidContent (".zip", baos.getAsInputStream (), aErrors));
     assertTrue (aErrors.isEmpty ());
   }
 

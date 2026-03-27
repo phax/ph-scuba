@@ -25,6 +25,7 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.base.io.stream.NonClosingInputStream;
 import com.helger.base.io.stream.NullOutputStream;
 import com.helger.base.io.stream.StreamHelper;
@@ -33,7 +34,6 @@ import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.io.file.FilenameHelper;
-import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorRegistry;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
@@ -89,7 +89,7 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
             LOGGER.debug ("Recursively validating ZIP entry '" + sEntryName + "'");
 
             // Use NonClosingInputStream so the ZipInputStream is not closed by the validator
-            if (!m_aRegistry.validateContent (".zip / " + sEntryName,
+            if (!m_aRegistry.validateContent ("zip:" + sEntryName,
                                               sEntryExt,
                                               new NonClosingInputStream (aZIPIS),
                                               aErrorList))

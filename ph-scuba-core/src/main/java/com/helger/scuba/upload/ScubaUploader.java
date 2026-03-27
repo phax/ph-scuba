@@ -104,6 +104,9 @@ public class ScubaUploader implements IScubaUploader
   {
     ValueEnforcer.notNull (aRepo, "Repo");
     ValueEnforcer.notNull (aSettings, "Settings");
+    if (!aRepo.canWrite ())
+      throw new IllegalArgumentException ("The provided repository is not in write-mode");
+
     m_aRepo = aRepo;
     m_aContentValidator = new UploadContentValidator (aRepo);
     // Defensive copy
