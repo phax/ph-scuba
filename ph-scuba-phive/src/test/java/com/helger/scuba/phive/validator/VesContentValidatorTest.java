@@ -20,11 +20,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.Test;
 
+import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
@@ -61,7 +61,7 @@ public final class VesContentValidatorTest
     final VesContentValidator aValidator = _createValidator ();
     final ErrorList aErrors = new ErrorList ();
     assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_VES,
-                                            new ByteArrayInputStream ("not valid xml".getBytes (StandardCharsets.UTF_8)),
+                                            new NonBlockingByteArrayInputStream ("not valid xml".getBytes (StandardCharsets.UTF_8)),
                                             aErrors));
     assertFalse (aErrors.isEmpty ());
   }

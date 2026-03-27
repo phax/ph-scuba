@@ -100,8 +100,8 @@ public final class UploadContentValidatorTest
                         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>\n" +
                         "  <xs:element name='test' type='xs:string'/>\n" +
                         "</xs:schema>";
-    final NonBlockingByteArrayOutputStream baos = new NonBlockingByteArrayOutputStream ();
-    try (final ZipOutputStream zos = new ZipOutputStream (baos))
+    final NonBlockingByteArrayOutputStream aBAOS = new NonBlockingByteArrayOutputStream ();
+    try (final ZipOutputStream zos = new ZipOutputStream (aBAOS))
     {
       zos.putNextEntry (new ZipEntry ("schemas/test.xsd"));
       zos.write (sXsd.getBytes (StandardCharsets.UTF_8));
@@ -109,7 +109,7 @@ public final class UploadContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertTrue (aValidator.validateContent ("", ".zip", baos.getAsInputStream (), aErrors));
+    assertTrue (aValidator.validateContent ("", ".zip", aBAOS.getAsInputStream (), aErrors));
     assertTrue (aErrors.isEmpty ());
   }
 
@@ -119,8 +119,8 @@ public final class UploadContentValidatorTest
     final UploadContentValidator aValidator = _createValidator ();
 
     // Create a ZIP containing an invalid XSD
-    final NonBlockingByteArrayOutputStream baos = new NonBlockingByteArrayOutputStream ();
-    try (final ZipOutputStream zos = new ZipOutputStream (baos))
+    final NonBlockingByteArrayOutputStream aBAOS = new NonBlockingByteArrayOutputStream ();
+    try (final ZipOutputStream zos = new ZipOutputStream (aBAOS))
     {
       zos.putNextEntry (new ZipEntry ("bad.xsd"));
       zos.write ("not valid xml".getBytes (StandardCharsets.UTF_8));
@@ -128,7 +128,7 @@ public final class UploadContentValidatorTest
     }
 
     final ErrorList aErrors = new ErrorList ();
-    assertFalse (aValidator.validateContent ("", ".zip", baos.getAsInputStream (), aErrors));
+    assertFalse (aValidator.validateContent ("", ".zip", aBAOS.getAsInputStream (), aErrors));
     assertFalse (aErrors.isEmpty ());
     // Error should contain the ZIP entry path context
     assertTrue (aErrors.getFirstOrNull ().getErrorText (Locale.ROOT).contains ("bad.xsd"));
