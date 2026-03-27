@@ -37,6 +37,15 @@ import com.helger.diagnostics.error.list.ErrorList;
 public interface IUploadContentValidatorRegistry
 {
   /**
+   * Check if a validator is registered for the given file extension.
+   *
+   * @param sFileExt
+   *        The file extension including the leading dot. Never <code>null</code>.
+   * @return {@code true} if a validator exists for this extension.
+   */
+  boolean hasValidatorForExtension (@NonNull String sFileExt);
+
+  /**
    * Validate the content of a file with the given extension, using the provided context path for
    * error message prefixing.
    *
@@ -58,13 +67,4 @@ public interface IUploadContentValidatorRegistry
                            @NonNull String sFileExt,
                            @NonNull InputStream aIS,
                            @NonNull ErrorList aErrorList) throws IOException;
-
-  /**
-   * Check if a validator is registered for the given file extension.
-   *
-   * @param sFileExt
-   *        The file extension including the leading dot. Never <code>null</code>.
-   * @return {@code true} if a validator exists for this extension.
-   */
-  boolean hasValidatorForExtension (@NonNull String sFileExt);
 }
