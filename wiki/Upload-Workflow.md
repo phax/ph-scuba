@@ -54,7 +54,7 @@ Validators that need recursive dispatch (like `ZipContentValidator`) receive the
 
 ### 3. Check for Duplicates
 
-After content validation passes, the core checks whether a resource with the same `RepoStorageKeyOfArtefact` already exists in the repository. If so, the upload is rejected (`RepoKeyAlreadyInUseException`).
+After content validation passes, the core checks whether a resource with the same `RepoStorageKeyOfArtefact` already exists in the repository. If so, the upload is rejected with a `RepoKeyAlreadyInUseException` (a checked `ScubaException`).
 
 ### 4. Write to Repository
 
@@ -96,12 +96,14 @@ This ensures consistent SHA-256 hashes across platforms, since the hash is compu
 
 ## Error Handling
 
+Upload methods (`addResource`, `uploadResource`, `addVES`, `addVESStatus`) declare both `IOException` and `ScubaException`. `ScubaException` is a checked exception; `RepoKeyAlreadyInUseException` extends it.
+
 Uploads can fail at multiple stages:
 
-| Stage | Error | Behavior |
-|-------|-------|----------|
-| Resolve | Resource not found | Exception before validation |
-| Validate | No SPI validator for extension | Upload rejected |
-| Validate | Content invalid for extension | Upload rejected, error logged |
-| Write | Duplicate key | `RepoKeyAlreadyInUseException` |
-| Write | Storage failure | Exception, no partial state |
+| Stage | Error | Exception |
+|-------|-------|-----------|
+| Resolve | Resource not found | `IllegalArgumentException` |
+| Validate | No SPI validator for extension | `IllegalArgumentException` (or allowed via settings) |
+| Validate | Content invalid for extension | `IllegalStateException`, errors logged |
+| Write | Duplicate key | `RepoKeyAlreadyInUseException` (`ScubaException`) |
+| Write | Storage failure | `IllegalStateException` |

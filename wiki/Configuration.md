@@ -46,12 +46,12 @@ Reads fall through in order; writes go to all writable storages.
 
 ## Uploader Configuration
 
-The uploader supports configuration options such as:
+`ScubaUploaderSettings` controls the upload behavior via chainable setters:
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| Overwrite existing | `false` | Whether to allow overwriting existing artifacts |
-| Verify hash on read | `true` | Verify SHA-256 on read-back |
-| Normalize newlines | `true` | Convert XML content to UNIX newlines before upload |
-| Validators | (built-in) | `IUploadContentValidatorSPI` implementations, discovered via SPI and dispatched by file extension |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `allowUploadWithUnknownExtension` | `false` | If `false`, uploads with a file extension that has no registered `IUploadContentValidatorSPI` are rejected. If `true`, they are allowed without content validation. |
+| `allowOverwriteExisting` | `false` | If `false`, uploading to a key that already exists throws `RepoKeyAlreadyInUseException`. If `true`, the existing artifact is silently overwritten. |
+
+Content validators are discovered automatically via Java `ServiceLoader` from all `IUploadContentValidatorSPI` implementations on the classpath. SHA-256 hashing, ToC management, and newline normalization are handled by the underlying ph-diver storage layer.
 

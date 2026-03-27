@@ -11,7 +11,7 @@
 
 ```
      ┌──────────────────────┐      ┌───────────────────────┐
-     │   ph-scuba           │      │   ph-scuba-phive      │
+     │   ph-scuba-core      │      │   ph-scuba-phive      │
      │   (Core upload logic,│      │   (VES/VESStatus      │
      │    SPI loading,      │      │    content validators │
      │    .xsd/.sch/.xslt/  │      │    via SPI)           │

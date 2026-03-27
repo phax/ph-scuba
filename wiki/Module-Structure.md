@@ -36,14 +36,14 @@ public interface IUploadContentValidatorSPI
 
   // Validate the content of a file with the given extension
   // Returns true if the content is valid for this file type
-  boolean isValidContent (String sFileExt, InputStream aIS) throws IOException;
+  boolean isValidContent (String sFileExt, InputStream aIS, ErrorList aErrorList) throws IOException;
 }
 ```
 
 The SPI creates a **reverse dependency** - `ph-scuba-api` defines the contract, implementations register via `META-INF/services` without any compile-time coupling from API to implementation:
 
 ```
-ph-scuba-api                            ph-scuba (core)
+ph-scuba-api                            ph-scuba-core
 ┌────────────────────────────┐          ┌─────────────────────────────────┐
 │ IUploadContentValidatorSPI │◄── SPI ──│ XsdContentValidator             │
 │                            │          │ SchContentValidator             │
@@ -70,17 +70,14 @@ ph-scuba-api                            ph-scuba (core)
 
 ---
 
-### ph-scuba
+### ph-scuba-core
 
 The core module provides the **main business logic** and default implementation of the upload pipeline.
 
 **Key responsibilities:**
 - Concrete uploader implementation (`ScubaUploader`) backed by `IRepoStorage`
 - **`UploadContentValidator`** - a reusable, standalone class that loads all `IUploadContentValidatorSPI` implementations via `ServiceLoader` and dispatches validation by file extension. Supports nested context paths for hierarchical error reporting (e.g., validating files inside ZIP archives).
-- SHA-256 integrity hash management
-- ToC update coordination
-- UNIX newline normalization for deterministic hashing
-- Duplicate detection (reject if key already exists)
+- Duplicate detection (reject if key already exists, throws `ScubaException`)
 
 **Built-in content validators** (registered via SPI from this module):
 - `.xsd` - XML Schema: XML well-formedness + root element `schema` in `http://www.w3.org/2001/XMLSchema` namespace
@@ -151,10 +148,8 @@ ph-xml ◄───────┘        ▲
 
 ## Maven Parent POM
 
-The parent POM will:
-- Inherit from `com.helger:parent-pom:3.0.3`
+The parent POM:
+- Inherits from `com.helger:parent-pom:3.0.3`
 - GroupId: `com.helger.scuba`
-- Version: `0.0.1-SNAPSHOT`
-- Java release: `21`
-- Import ph-diver (`4.2.0`), ph-commons (`12.1.5`), and phive (`12.0.1`) BOMs via `<dependencyManagement>`
-- Define shared plugin configuration (compiler, surefire, etc.)
+- Imports ph-diver, ph-commons, and phive BOMs via `<dependencyManagement>`
+- Shared plugin configuration (compiler, surefire, etc.) is inherited from parent-pom
