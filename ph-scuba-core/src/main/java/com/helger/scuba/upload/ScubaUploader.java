@@ -270,6 +270,9 @@ public class ScubaUploader implements IScubaUploader
 
   public void deleteResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final String sFileExt)
   {
+    if (!m_aRepo.canDelete ())
+      throw new IllegalStateException ("The underlying Repository object does not allow deletion");
+
     // Create StorageKey (must start with '.')
     final String sRealFileExt = StringHelper.startsWith (sFileExt, '.') ? sFileExt : '.' + sFileExt;
     final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, sRealFileExt);
