@@ -7,7 +7,7 @@ ph-scuba follows the established ph-* Maven multi-module pattern.
 ```
 scuba (parent POM)
 ├── ph-scuba-api           Generic upload and content validation API (incl. SPI)
-├── ph-scuba-core             Main business logic (upload pipeline)
+├── ph-scuba-core          Main business logic (upload pipeline)
 └── ph-scuba-phive         Phive-specific content validators and VES upload logic
 ```
 
