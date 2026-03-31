@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
 
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
@@ -40,7 +41,6 @@ import com.helger.phive.ves.v10.VesResourceType;
 import com.helger.phive.ves.v10.VesType;
 import com.helger.phive.ves.v10.VesXsdCatalogItemPublicType;
 import com.helger.phive.ves.v10.VesXsdCatalogItemSystemType;
-import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.scuba.phive.codelists.SPDXHelper;
 
@@ -75,10 +75,13 @@ public final class VesContentValidator implements IUploadContentValidatorSPI
                                  @NonNull final InputStream aIS,
                                  @NonNull final ErrorList aErrorList)
   {
-    final VesType aVes = new VES1Marshaller ().read (aIS);
+    final VES1Marshaller aMarshaller = new VES1Marshaller ();
+    aMarshaller.readExceptionCallbacks ().removeAll ();
+    final VesType aVes = aMarshaller.setCollectErrors (aErrorList).read (aIS);
     if (aVes == null)
     {
-      aErrorList.add (SingleError.builderError ().errorText ("Failed to read payload as VES - XSD error").build ());
+      if (false)
+        aErrorList.add (SingleError.builderError ().errorText ("Failed to read payload as VES - XSD error").build ());
       return false;
     }
 

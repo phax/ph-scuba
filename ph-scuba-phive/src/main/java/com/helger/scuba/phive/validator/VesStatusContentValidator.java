@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
 
+import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
@@ -34,7 +35,6 @@ import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.model.v1.VESStatus1Marshaller;
 import com.helger.phive.ves.v10.VesStatusReplacementType;
 import com.helger.phive.ves.v10.VesStatusType;
-import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 
 /**
@@ -68,12 +68,15 @@ public final class VesStatusContentValidator implements IUploadContentValidatorS
                                  @NonNull final InputStream aIS,
                                  @NonNull final ErrorList aErrorList)
   {
-    final VesStatusType aStatus = new VESStatus1Marshaller ().read (aIS);
+    final VESStatus1Marshaller aMarshaller = new VESStatus1Marshaller ();
+    aMarshaller.readExceptionCallbacks ().removeAll ();
+    final VesStatusType aStatus = aMarshaller.setCollectErrors (aErrorList).read (aIS);
     if (aStatus == null)
     {
-      aErrorList.add (SingleError.builderError ()
-                                 .errorText ("Failed to read payload as VES Status - XSD error")
-                                 .build ());
+      if (false)
+        aErrorList.add (SingleError.builderError ()
+                                   .errorText ("Failed to read payload as VES Status - XSD error")
+                                   .build ());
       return false;
     }
 
