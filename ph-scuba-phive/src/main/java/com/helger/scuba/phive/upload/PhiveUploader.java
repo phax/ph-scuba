@@ -31,6 +31,7 @@ import com.helger.base.string.StringHelper;
 import com.helger.base.system.ENewLineMode;
 import com.helger.datetime.helper.PDTFactory;
 import com.helger.datetime.xml.XMLOffsetDateTime;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.api.version.DVRVersion;
 import com.helger.diver.repo.IRepoStorageReadItem;
@@ -99,21 +100,35 @@ public class PhiveUploader
    *
    * @param aVes
    *        The VES to upload. May not be <code>null</code>.
+   * @return {@link EChange} depending on something changed or not
    * @throws IOException
    *         On IO error
    * @throws ScubaException
    *         If some scuba constraints don't match
    */
-  public void addVES (@NonNull final VesType aVes) throws IOException, ScubaException
+  @NonNull
+  public EChange addVES (@NonNull final VesType aVes) throws IOException, ScubaException
   {
     ValueEnforcer.notNull (aVes, "VES");
+
+    // Serialize VES Status
+    final ErrorList aXMLErrorList = new ErrorList ();
+    final byte [] aStatusBytes = _getUnifiedMarshaller (new VES1Marshaller ()).setCollectErrors (aXMLErrorList)
+                                                                              .getAsBytes (aVes);
+    if (aStatusBytes == null)
+    {
+      LOGGER.error ("Failed to serialize VES as XML:");
+      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
+      return EChange.UNCHANGED;
+    }
 
     // Take VESID from the inside
     m_aUploader.uploadResource (new DVRCoordinate (aVes.getGroupId (),
                                                    aVes.getArtifactId (),
                                                    DVRVersion.parseOrNull (aVes.getVersion ())),
-                                RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VES1Marshaller ()).getAsBytes (aVes)),
+                                RepoStorageContentByteArray.of (aStatusBytes),
                                 VESLoader.FILE_EXT_VES);
+    return EChange.CHANGED;
   }
 
   /**
@@ -122,20 +137,34 @@ public class PhiveUploader
    *
    * @param aVESStatus
    *        The VES status to upload. May not be <code>null</code>.
+   * @return {@link EChange} depending on something changed or not
    * @throws IOException
    *         On IO error
    * @throws ScubaException
    *         If some scuba constraints don't match
    */
-  public void addVESStatus (@NonNull final VesStatusType aVESStatus) throws IOException, ScubaException
+  @NonNull
+  public EChange addVESStatus (@NonNull final VesStatusType aVESStatus) throws IOException, ScubaException
   {
     ValueEnforcer.notNull (aVESStatus, "VESStatus");
+
+    // Serialize VES Status
+    final ErrorList aXMLErrorList = new ErrorList ();
+    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
+                                                                                    .getAsBytes (aVESStatus);
+    if (aStatusBytes == null)
+    {
+      LOGGER.error ("Failed to serialize uploaded status as XML:");
+      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
+      return EChange.UNCHANGED;
+    }
 
     m_aUploader.uploadResource (new DVRCoordinate (aVESStatus.getGroupId (),
                                                    aVESStatus.getArtifactId (),
                                                    DVRVersion.parseOrNull (aVESStatus.getVersion ())),
-                                RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VESStatus1Marshaller ()).getAsBytes (aVESStatus)),
+                                RepoStorageContentByteArray.of (aStatusBytes),
                                 VESLoader.FILE_EXT_STATUS);
+    return EChange.CHANGED;
   }
 
   /**
@@ -206,11 +235,19 @@ public class PhiveUploader
     aHistoryItem.setValue ("Marked as deprecated");
     aStatus.getHistory ().addHistoryItem (aHistoryItem);
 
+    // Serialize VES Status
+    final ErrorList aXMLErrorList = new ErrorList ();
+    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
+                                                                                    .getAsBytes (aStatus);
+    if (aStatusBytes == null)
+    {
+      LOGGER.error ("Failed to serialize uploaded status as XML:");
+      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
+      return EChange.UNCHANGED;
+    }
+
     // Upload updated version
-    if (m_aUploader.getRepoStorage ()
-                   .write (aStatusKey,
-                           RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VESStatus1Marshaller ()).getAsBytes (aStatus)))
-                   .isFailure ())
+    if (m_aUploader.getRepoStorage ().write (aStatusKey, RepoStorageContentByteArray.of (aStatusBytes)).isFailure ())
     {
       LOGGER.error ("Failed to upload updated status to repository");
       return EChange.UNCHANGED;
@@ -308,11 +345,19 @@ public class PhiveUploader
     aHistoryItem.setValue ("Updated validity dates");
     aStatus.getHistory ().addHistoryItem (aHistoryItem);
 
+    // Serialize VES Status
+    final ErrorList aXMLErrorList = new ErrorList ();
+    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
+                                                                                    .getAsBytes (aStatus);
+    if (aStatusBytes == null)
+    {
+      LOGGER.error ("Failed to serialize uploaded status as XML:");
+      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
+      return EChange.UNCHANGED;
+    }
+
     // Upload updated version
-    if (m_aUploader.getRepoStorage ()
-                   .write (aStatusKey,
-                           RepoStorageContentByteArray.of (_getUnifiedMarshaller (new VESStatus1Marshaller ()).getAsBytes (aStatus)))
-                   .isFailure ())
+    if (m_aUploader.getRepoStorage ().write (aStatusKey, RepoStorageContentByteArray.of (aStatusBytes)).isFailure ())
     {
       LOGGER.error ("Failed to upload updated status to repository");
       return EChange.UNCHANGED;
