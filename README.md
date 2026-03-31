@@ -140,6 +140,11 @@ mvn clean install
 
 ## News and Noteworthy
 
+v1.0.1 - 2026-03-31
+* Improved `PhiveUploader` resilience and error handling
+* Avoided NPE and added descriptive error messages when writing fails
+* Reduced logging verbosity when reading invalid VES/VESStatus data
+
 v1.0.0 - 2026-03-27
 * Initial version
 * Extracted and generalized upload logic from an internal tool
