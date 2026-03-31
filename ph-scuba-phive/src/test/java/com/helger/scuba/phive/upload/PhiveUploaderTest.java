@@ -152,6 +152,46 @@ public final class PhiveUploaderTest
     assertFalse (aRepo.exists (RepoStorageKeyOfArtefact.of (aVesCoord, VESLoader.FILE_EXT_VES)));
   }
 
+  @Test
+  public void testAddVESIncompleteEmpty () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // Completely empty VES - no groupId, artifactId, version, name, or content
+    final VesType aVes = new VesType ();
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.addVES (aVes));
+  }
+
+  @Test
+  public void testAddVESIncompleteNoContent () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // VES with coordinates and name but no validation content (xsd/schematron)
+    final VesType aVes = new VesType ();
+    aVes.setGroupId ("com.test");
+    aVes.setArtifactId ("incomplete");
+    aVes.setVersion ("1.0");
+    aVes.setName ("Incomplete VES");
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.addVES (aVes));
+  }
+
+  @Test
+  public void testAddVESIncompleteNoName () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // VES with coordinates but no name
+    final VesType aVes = new VesType ();
+    aVes.setGroupId ("com.test");
+    aVes.setArtifactId ("noname");
+    aVes.setVersion ("1.0");
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.addVES (aVes));
+  }
+
   // -- addVESStatus tests --
 
   @Test
@@ -178,6 +218,48 @@ public final class PhiveUploaderTest
 
     // Verify it was stored
     assertTrue (aRepo.exists (RepoStorageKeyOfArtefact.of (aCoord, VESLoader.FILE_EXT_STATUS)));
+  }
+
+  @Test
+  public void testAddVESStatusIncompleteEmpty () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // Completely empty VESStatus - no groupId, artifactId, version, or history
+    final VesStatusType aStatus = new VesStatusType ();
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.addVESStatus (aStatus));
+  }
+
+  @Test
+  public void testAddVESStatusIncompleteNoHistory () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // VESStatus with coordinates but no history (required element)
+    final VesStatusType aStatus = new VesStatusType ();
+    aStatus.setGroupId ("com.test");
+    aStatus.setArtifactId ("nohistory");
+    aStatus.setVersion ("1.0");
+    aStatus.setStatusLastModified (PDTFactory.getCurrentXMLOffsetDateTimeUTC ());
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.addVESStatus (aStatus));
+  }
+
+  @Test
+  public void testAddVESStatusIncompleteEmptyHistory () throws Exception
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // VESStatus with coordinates and empty history (history has no items)
+    final VesStatusType aStatus = new VesStatusType ();
+    aStatus.setGroupId ("com.test");
+    aStatus.setArtifactId ("emptyhistory");
+    aStatus.setVersion ("1.0");
+    aStatus.setStatusLastModified (PDTFactory.getCurrentXMLOffsetDateTimeUTC ());
+    aStatus.setHistory (new VesStatusHistoryType ());
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.addVESStatus (aStatus));
   }
 
   // -- setVESDeprecated tests --

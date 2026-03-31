@@ -92,6 +92,8 @@ public class PhiveUploader
   {
     // Using the UNIX new line mode is crucial - it impacts the SHA-256 creation
     aMarshaller.withXMLWriterSettings (x -> x.setNewLineMode (ENewLineMode.UNIX)).setFormattedOutput (true);
+    // Avoid logging all details
+    aMarshaller.writeExceptionCallbacks ().removeAll ();
     return aMarshaller;
   }
 
@@ -149,9 +151,9 @@ public class PhiveUploader
     ValueEnforcer.notNull (aVESStatus, "VESStatus");
 
     // Serialize VES Status
+    final var m = _getUnifiedMarshaller (new VESStatus1Marshaller ());
     final ErrorList aXMLErrorList = new ErrorList ();
-    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
-                                                                                    .getAsBytes (aVESStatus);
+    final byte [] aStatusBytes = m.setCollectErrors (aXMLErrorList).getAsBytes (aVESStatus);
     if (aStatusBytes == null)
     {
       LOGGER.error ("Failed to serialize uploaded status as XML:");
