@@ -22,7 +22,7 @@
   <parent>
     <groupId>com.helger.scuba</groupId>
     <artifactId>ph-scuba-parent-pom</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>ph-scuba-phive</artifactId>
   <packaging>jar</packaging>
