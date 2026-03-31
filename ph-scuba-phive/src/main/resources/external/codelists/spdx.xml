@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root licenseListVersion="1ff5448">
-  <!-- This file was created with com.helger.scuba.phive.supplemntary.tools.MainReadLicenseListJson - do not edit! -->  <license id="0BSD" name="BSD Zero Clause License" />
+<!-- This file was created with com.helger.scuba.phive.supplemntary.tools.MainReadLicenseListJson - do not edit! --><root licenseListVersion="1ff5448">
+  <license id="0BSD" name="BSD Zero Clause License" />
   <license id="3D-Slicer-1.0" name="3D Slicer License v1.0" />
   <license id="AAL" name="Attribution Assurance License" />
   <license id="Abstyles" name="Abstyles License" />
