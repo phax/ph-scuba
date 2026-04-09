@@ -140,6 +140,9 @@ mvn clean install
 
 ## News and Noteworthy
 
+v1.0.2 - 2026-04-09
+* Improved Schematron consistency check
+
 v1.0.1 - 2026-03-31
 * Improved `PhiveUploader` resilience and error handling
 * Avoided NPE and added descriptive error messages when writing fails

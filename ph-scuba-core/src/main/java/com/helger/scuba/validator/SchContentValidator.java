@@ -25,10 +25,14 @@ import com.helger.collection.commons.CommonsHashSet;
 import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
+import com.helger.io.resource.inmemory.ReadableResourceString;
+import com.helger.schematron.pure.errorhandler.WrappedCollectingPSErrorHandler;
+import com.helger.schematron.pure.exchange.PSReader;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
+import com.helger.xml.microdom.IMicroDocument;
+import com.helger.xml.microdom.serialize.MicroReader;
 import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
-import com.helger.xml.serialize.read.DOMReader;
-import com.helger.xml.serialize.read.DOMReaderSettings;
+import com.helger.xml.serialize.read.SAXReaderSettings;
 
 /**
  * Content validator for Schematron files (.sch). Checks XML well-formedness.
@@ -56,17 +60,41 @@ public final class SchContentValidator implements IUploadContentValidatorSPI
                                  @NonNull final ErrorList aErrorList)
   {
     // Check well-formedness
-    final DOMReaderSettings aDRS = new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList));
+    final SAXReaderSettings aDRS = new SAXReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList));
     aDRS.exceptionCallbacks ()
         .set (ex -> aErrorList.add (SingleError.builderError ()
                                                .errorText ("Error parsing XML")
                                                .linkedException (ex)
                                                .build ()));
-    if (DOMReader.readXMLDOM (aIS, aDRS) == null)
+    final IMicroDocument aDoc = MicroReader.readMicroXML (aIS, aDRS);
+    if (aDoc == null)
     {
       aErrorList.add (SingleError.builderError ().errorText ("Schematron is not well-formed XML").build ());
       return false;
     }
-    return true;
+    if (aDoc.getDocumentElement () == null)
+    {
+      aErrorList.add (SingleError.builderError ().errorText ("Schematron is missing XML root element").build ());
+      return false;
+    }
+
+    // Read specific Schematron
+    final PSReader aReader = new PSReader (ReadableResourceString.utf8 ("Provided via InputStream"),
+                                           new WrappedCollectingPSErrorHandler (aErrorList),
+                                           null);
+    try
+    {
+      // Read from previously parsed DOM node (throws always in case of error)
+      aReader.readSchemaFromXML (aDoc.getDocumentElement ());
+      return true;
+    }
+    catch (final Exception ex)
+    {
+      aErrorList.add (SingleError.builderError ()
+                                 .errorText ("Exception parsing Schematron: " + ex.getMessage ())
+                                 .linkedException (ex)
+                                 .build ());
+      return false;
+    }
   }
 }

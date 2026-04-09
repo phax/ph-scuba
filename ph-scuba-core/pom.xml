@@ -52,6 +52,10 @@
       <groupId>com.helger.commons</groupId>
       <artifactId>ph-xml</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.helger.schematron</groupId>
+      <artifactId>ph-schematron-pure</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
