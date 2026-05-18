@@ -63,7 +63,7 @@
   </developers>
 
   <properties>
-    <ph-commons.version>12.2.5</ph-commons.version>
+    <ph-commons.version>12.2.6</ph-commons.version>
     <ph-web.version>11.4.0</ph-web.version>
     <ph-diver.version>4.2.0</ph-diver.version>
     <phive.version>12.0.3</phive.version>
