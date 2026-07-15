@@ -30,6 +30,7 @@ import com.helger.annotation.style.ReturnsMutableCopy;
 import com.helger.base.enforce.ValueEnforcer;
 import com.helger.base.state.EValidity;
 import com.helger.base.string.StringHelper;
+import com.helger.base.tostring.ToStringGenerator;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.IRepoStorageContent;
@@ -78,6 +79,7 @@ public class ScubaUploader implements IScubaUploader
   }
 
   private static final Logger LOGGER = LoggerFactory.getLogger (ScubaUploader.class);
+
   private final IRepoStorageWithToc m_aRepo;
   private final UploadContentValidator m_aContentValidator;
   private final ScubaUploaderSettings m_aSettings;
@@ -169,7 +171,8 @@ public class ScubaUploader implements IScubaUploader
                                                                 aContent.getBufferedInputStream (),
                                                                 aErrorList);
     if (!bValid)
-      aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
+      for (final var aError : aErrorList.getAllErrors ())
+        LOGGER.error (aError.getAsStringLocaleIndepdent ());
     return EValidity.valueOf (bValid);
   }
 
@@ -187,12 +190,16 @@ public class ScubaUploader implements IScubaUploader
                                                 aErrorList))
       {
         // Log all collected errors
-        aErrorList.getAllErrors ().forEach (e -> LOGGER.error (e.getAsStringLocaleIndepdent ()));
-        throw new IllegalStateException ("Data for coordinate '" +
-                                         aCoordinate.getAsSingleID () +
-                                         "' does not match expectations of the file extension ('" +
-                                         sFileExt +
-                                         "') - see log for details");
+        for (final var aError : aErrorList.getAllErrors ())
+          LOGGER.error (aError.getAsStringLocaleIndepdent ());
+
+        final String sMsg = "Data for coordinate '" +
+                            aCoordinate.getAsSingleID () +
+                            "' does not match expectations of the file extension ('" +
+                            sFileExt +
+                            "')";
+        LOGGER.error (sMsg);
+        throw new IllegalStateException (sMsg + " - see log for details");
       }
     }
     else
@@ -200,9 +207,11 @@ public class ScubaUploader implements IScubaUploader
       // No validator registered for this file extension
       if (!m_aSettings.isAllowUploadWithUnknownExtension ())
       {
-        throw new IllegalArgumentException ("Unsupported file extension '" +
-                                            sFileExt +
-                                            "' - no content validator registered and upload of unknown extensions is disabled");
+        final String sMsg = "Unsupported file extension '" +
+                            sFileExt +
+                            "' - no content validator registered and upload of unknown extensions is disabled";
+        LOGGER.error (sMsg);
+        throw new IllegalArgumentException (sMsg);
       }
 
       LOGGER.warn ("No content validator for file extension '" + sFileExt + "' - uploading without validation");
@@ -216,15 +225,29 @@ public class ScubaUploader implements IScubaUploader
     {
       if (!m_aSettings.isAllowOverwriteExisting ())
       {
-        throw new RepoKeyAlreadyInUseException ("A resource with key '" + aKey.getPath () + "' is already in the Repo");
+        final String sMsg = "A resource with key '" +
+                            aKey.getPath () +
+                            "' is already in Repo '" +
+                            m_aRepo.getID () +
+                            "' and overwrite is disabled.";
+        LOGGER.error (sMsg);
+        throw new RepoKeyAlreadyInUseException (sMsg);
       }
 
-      LOGGER.warn ("Overwriting existing resource with key '" + aKey.getPath () + "'");
+      LOGGER.warn ("Overwriting existing resource with key '" +
+                   aKey.getPath () +
+                   "' in Repo '" +
+                   m_aRepo.getID () +
+                   "'");
     }
 
     // Write data to Repo
     if (m_aRepo.write (aKey, aContent).isFailure ())
-      throw new IllegalStateException ("Failed to write");
+    {
+      final String sMsg = "Failed to write content of key '" + aKey.getPath () + "' to Repo '" + m_aRepo.getID () + "'";
+      LOGGER.error (sMsg);
+      throw new IllegalStateException (sMsg);
+    }
   }
 
   public void addResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final IReadableResource aPayload)
@@ -235,7 +258,11 @@ public class ScubaUploader implements IScubaUploader
     ValueEnforcer.notNull (aPayload, "Payload");
 
     if (!aPayload.exists ())
-      throw new IllegalArgumentException ("The provided resource '" + aPayload.getPath () + "' does not exist");
+    {
+      final String sMsg = "The provided resource '" + aPayload.getPath () + "' does not exist";
+      LOGGER.error (sMsg);
+      throw new IllegalArgumentException (sMsg);
+    }
 
     final IRepoStorageContent aContent = new RepoStorageContentFromReadableResource (aPayload);
     _uploadResource (aCoordinate, aContent, _getFileExt (aPayload));
@@ -283,6 +310,15 @@ public class ScubaUploader implements IScubaUploader
 
     // Delete from Repo
     if (m_aRepo.delete (aKey).isFailure ())
-      LOGGER.warn ("Failed to delete " + aKey);
+      LOGGER.warn ("Failed to delete '" + aKey + "'");
+  }
+
+  @Override
+  public String toString ()
+  {
+    return new ToStringGenerator (this).append ("Repo", m_aRepo)
+                                       .append ("ContentValidator", m_aContentValidator)
+                                       .append ("Settings", m_aSettings)
+                                       .getToString ();
   }
 }
