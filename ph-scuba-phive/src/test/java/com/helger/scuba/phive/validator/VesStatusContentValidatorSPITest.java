@@ -20,11 +20,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.nio.charset.StandardCharsets;
-
+import org.jspecify.annotations.NonNull;
 import org.junit.Test;
 
-import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
+import com.helger.base.io.stream.StringInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
@@ -32,15 +31,16 @@ import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.phive.ves.engine.load.VESLoader;
 
 /**
- * Test class for {@link VesStatusContentValidator}.
+ * Test class for {@link VesStatusContentValidatorSPI}.
  *
  * @author Philip Helger
  */
-public final class VesStatusContentValidatorTest
+public final class VesStatusContentValidatorSPITest
 {
-  private static VesStatusContentValidator _createValidator ()
+  @NonNull
+  private static VesStatusContentValidatorSPI _createValidator ()
   {
-    final VesStatusContentValidator ret = new VesStatusContentValidator ();
+    final VesStatusContentValidatorSPI ret = new VesStatusContentValidatorSPI ();
     ret.initRepoStorage (RepoStorageInMemory.createDefault ("test",
                                                             ERepoWritable.WITH_WRITE,
                                                             ERepoDeletable.WITH_DELETE));
@@ -50,7 +50,7 @@ public final class VesStatusContentValidatorTest
   @Test
   public void testSupportedExtensions ()
   {
-    final VesStatusContentValidator aValidator = _createValidator ();
+    final VesStatusContentValidatorSPI aValidator = _createValidator ();
     assertNotNull (aValidator.getSupportedFileExtensions ());
     assertTrue (aValidator.getSupportedFileExtensions ().contains (VESLoader.FILE_EXT_STATUS));
   }
@@ -58,10 +58,10 @@ public final class VesStatusContentValidatorTest
   @Test
   public void testInvalidContent ()
   {
-    final VesStatusContentValidator aValidator = _createValidator ();
+    final VesStatusContentValidatorSPI aValidator = _createValidator ();
     final ErrorList aErrors = new ErrorList ();
     assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_STATUS,
-                                            new NonBlockingByteArrayInputStream ("not valid xml".getBytes (StandardCharsets.UTF_8)),
+                                            StringInputStream.utf8 ("not valid xml"),
                                             aErrors));
     assertFalse (aErrors.isEmpty ());
   }
@@ -75,11 +75,9 @@ public final class VesStatusContentValidatorTest
                            "           groupId='com.test' artifactId='test' version='1.0'\n" +
                            "           deprecationReason='old version'>\n" +
                            "</VesStatus>";
-    final VesStatusContentValidator aValidator = _createValidator ();
+    final VesStatusContentValidatorSPI aValidator = _createValidator ();
     final ErrorList aErrors = new ErrorList ();
-    assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_STATUS,
-                                            new NonBlockingByteArrayInputStream (sStatus.getBytes (StandardCharsets.UTF_8)),
-                                            aErrors));
+    assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_STATUS, StringInputStream.utf8 (sStatus), aErrors));
     assertFalse (aErrors.isEmpty ());
   }
 }

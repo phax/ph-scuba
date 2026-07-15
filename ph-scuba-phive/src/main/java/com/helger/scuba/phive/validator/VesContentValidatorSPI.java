@@ -51,10 +51,10 @@ import com.helger.scuba.phive.codelists.SPDXHelper;
  * @author Philip Helger
  */
 @IsSPIImplementation
-public final class VesContentValidator implements IUploadContentValidatorSPI
+public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
 {
   /** Default constructor. */
-  public VesContentValidator ()
+  public VesContentValidatorSPI ()
   {}
 
   private IRepoStorageWithToc m_aRepo;

@@ -20,11 +20,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.nio.charset.StandardCharsets;
-
+import org.jspecify.annotations.NonNull;
 import org.junit.Test;
 
-import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
+import com.helger.base.io.stream.StringInputStream;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
@@ -32,15 +31,16 @@ import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.phive.ves.engine.load.VESLoader;
 
 /**
- * Test class for {@link VesContentValidator}.
+ * Test class for {@link VesContentValidatorSPI}.
  *
  * @author Philip Helger
  */
-public final class VesContentValidatorTest
+public final class VesContentValidatorSPITest
 {
-  private static VesContentValidator _createValidator ()
+  @NonNull
+  private static VesContentValidatorSPI _createValidator ()
   {
-    final VesContentValidator ret = new VesContentValidator ();
+    final VesContentValidatorSPI ret = new VesContentValidatorSPI ();
     ret.initRepoStorage (RepoStorageInMemory.createDefault ("test",
                                                             ERepoWritable.WITH_WRITE,
                                                             ERepoDeletable.WITH_DELETE));
@@ -50,7 +50,7 @@ public final class VesContentValidatorTest
   @Test
   public void testSupportedExtensions ()
   {
-    final VesContentValidator aValidator = _createValidator ();
+    final VesContentValidatorSPI aValidator = _createValidator ();
     assertNotNull (aValidator.getSupportedFileExtensions ());
     assertTrue (aValidator.getSupportedFileExtensions ().contains (VESLoader.FILE_EXT_VES));
   }
@@ -58,11 +58,9 @@ public final class VesContentValidatorTest
   @Test
   public void testInvalidContent ()
   {
-    final VesContentValidator aValidator = _createValidator ();
+    final VesContentValidatorSPI aValidator = _createValidator ();
     final ErrorList aErrors = new ErrorList ();
-    assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_VES,
-                                            new NonBlockingByteArrayInputStream ("not valid xml".getBytes (StandardCharsets.UTF_8)),
-                                            aErrors));
+    assertFalse (aValidator.isValidContent (VESLoader.FILE_EXT_VES, StringInputStream.utf8 ("not valid xml"), aErrors));
     assertFalse (aErrors.isEmpty ());
   }
 }

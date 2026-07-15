@@ -44,10 +44,10 @@ import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
  * @author Philip Helger
  */
 @IsSPIImplementation
-public final class VesStatusContentValidator implements IUploadContentValidatorSPI
+public final class VesStatusContentValidatorSPI implements IUploadContentValidatorSPI
 {
   /** Default constructor. */
-  public VesStatusContentValidator ()
+  public VesStatusContentValidatorSPI ()
   {}
 
   private IRepoStorageWithToc m_aRepo;
