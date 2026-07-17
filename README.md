@@ -142,6 +142,9 @@ mvn clean install
 
 ## News and Noteworthy
 
+v1.1.0 - 2026-07-17
+* Updated to ph-schematron v10.x
+
 v1.0.2 - 2026-04-09
 * Improved Schematron consistency check
 
