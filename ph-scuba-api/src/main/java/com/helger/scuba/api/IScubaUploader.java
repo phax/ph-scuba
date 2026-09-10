@@ -66,8 +66,8 @@ public interface IScubaUploader
    * @throws ScubaException
    *         If some scuba constraints don't match
    */
-  void addResource (@NonNull DVRCoordinate aCoordinate, @NonNull IReadableResource aPayload) throws IOException,
-                                                                                             ScubaException;
+  void addResource (@NonNull DVRCoordinate aCoordinate,
+                    @NonNull IReadableResource aPayload) throws IOException, ScubaException;
 
   /**
    * Check if a resource with the given coordinate and file extension exists.

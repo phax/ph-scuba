@@ -47,6 +47,7 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
   /** Default constructor. */
   public XsltContentValidator ()
   {}
+
   private static final String EXPECTED_LOCAL_NAME = "stylesheet";
   private static final String EXPECTED_NAMESPACE_URI = "http://www.w3.org/1999/XSL/Transform";
 

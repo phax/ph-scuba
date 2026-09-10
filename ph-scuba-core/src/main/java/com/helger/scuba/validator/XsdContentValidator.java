@@ -49,6 +49,7 @@ public final class XsdContentValidator implements IUploadContentValidatorSPI
   /** Default constructor. */
   public XsdContentValidator ()
   {}
+
   private static final String EXPECTED_LOCAL_NAME = "schema";
   private static final String EXPECTED_NAMESPACE_URI = XMLConstants.W3C_XML_SCHEMA_NS_URI;
 

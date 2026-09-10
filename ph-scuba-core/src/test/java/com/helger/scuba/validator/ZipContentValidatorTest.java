@@ -120,8 +120,8 @@ public final class ZipContentValidatorTest
   }
 
   @NonNull
-  private static byte [] _createInnerZip (@NonNull final String sEntryName, final byte @NonNull [] aContent)
-                                                                                                             throws Exception
+  private static byte [] _createInnerZip (@NonNull final String sEntryName,
+                                          final byte @NonNull [] aContent) throws Exception
   {
     final NonBlockingByteArrayOutputStream aBAOS = new NonBlockingByteArrayOutputStream ();
     try (final ZipOutputStream aZOS = new ZipOutputStream (aBAOS))

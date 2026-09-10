@@ -250,9 +250,8 @@ public class ScubaUploader implements IScubaUploader
     }
   }
 
-  public void addResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final IReadableResource aPayload)
-                                                                                                                throws IOException,
-                                                                                                                ScubaException
+  public void addResource (@NonNull final DVRCoordinate aCoordinate,
+                           @NonNull final IReadableResource aPayload) throws IOException, ScubaException
   {
     ValueEnforcer.notNull (aCoordinate, "Coordinate");
     ValueEnforcer.notNull (aPayload, "Payload");

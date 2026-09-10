@@ -83,6 +83,7 @@ public interface IUploadContentValidatorSPI
    * @throws IOException
    *         On IO error
    */
-  boolean isValidContent (@NonNull String sFileExt, @NonNull InputStream aIS, @NonNull ErrorList aErrorList)
-                                                                                                             throws IOException;
+  boolean isValidContent (@NonNull String sFileExt,
+                          @NonNull InputStream aIS,
+                          @NonNull ErrorList aErrorList) throws IOException;
 }
