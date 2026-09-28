@@ -66,7 +66,7 @@
     <ph-commons.version>12.5.0</ph-commons.version>
     <ph-web.version>11.4.6</ph-web.version>
     <ph-diver.version>4.2.2</ph-diver.version>
-    <phive.version>12.1.0</phive.version>
+    <phive.version>12.2.0</phive.version>
   </properties>
 
   <dependencyManagement>
