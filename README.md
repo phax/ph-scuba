@@ -143,8 +143,9 @@ mvn clean install
 
 ## News and Noteworthy
 
-v1.1.1 - work in progress
-* Added new submodule `ph-scuba-bom` as a dedicated Maven BOM. It should be used instead of `ph-scuba-parent-pom` for importing
+v1.1.1 - 2026-11-15
+* Added new submodule `ph-scuba-bom` as a dedicated Maven BOM.
+  It should be used instead of `ph-scuba-parent-pom` for importing
 
 v1.1.0 - 2026-07-17
 * Updated to ph-schematron v10.x
