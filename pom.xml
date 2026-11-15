@@ -63,10 +63,11 @@
   </developers>
 
   <properties>
-    <ph-commons.version>12.6.0</ph-commons.version>
-    <ph-web.version>11.5.0</ph-web.version>
-    <ph-diver.version>4.2.2</ph-diver.version>
-    <phive.version>12.2.0</phive.version>
+    <ph-commons.version>12.7.1</ph-commons.version>
+    <ph-web.version>11.5.1</ph-web.version>
+    <ph-diver.version>4.2.3</ph-diver.version>
+    <phive.version>12.3.0</phive.version>
+    <ph-schematron.version>10.3.2</ph-schematron.version>
   </properties>
 
   <dependencyManagement>
@@ -74,31 +75,51 @@
       <!-- BOM imports -->
       <dependency>
         <groupId>com.helger.commons</groupId>
-        <artifactId>ph-commons-parent-pom</artifactId>
+        <artifactId>ph-commons-bom</artifactId>
         <version>${ph-commons.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.web</groupId>
-        <artifactId>ph-web-parent-pom</artifactId>
+        <artifactId>ph-web-bom</artifactId>
         <version>${ph-web.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.diver</groupId>
-        <artifactId>ph-diver-parent-pom</artifactId>
+        <artifactId>ph-diver-bom</artifactId>
         <version>${ph-diver.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.helger.phive</groupId>
-        <artifactId>phive-parent-pom</artifactId>
+        <artifactId>phive-bom</artifactId>
         <version>${phive.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.helger.schematron</groupId>
+        <artifactId>ph-schematron-bom</artifactId>
+        <version>${ph-schematron.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-bom</artifactId>
+        <version>4.0.9</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit4.version}</version>
       </dependency>
 
       <!-- Internal modules -->
@@ -140,6 +161,7 @@
   </dependencies>
 
   <modules>
+    <module>ph-scuba-bom</module>
     <module>ph-scuba-api</module>
     <module>ph-scuba-core</module>
     <module>ph-scuba-phive</module>

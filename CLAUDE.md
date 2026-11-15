@@ -31,9 +31,12 @@ Use lowercase "scuba" or "ph-scuba" everywhere in prose, Javadoc, POM descriptio
 
 ## Architecture
 
-ph-scuba is a 3-module Maven project for uploading artifacts to ph-diver repositories.
+ph-scuba is a multi-module Maven project for uploading artifacts to ph-diver repositories.
 
 **Dependency flow:** `ph-scuba-api` <- `ph-scuba-core` <- `ph-scuba-phive`
+
+### ph-scuba-bom
+Bill of Materials listing all ph-scuba artifacts with `${project.version}`. Consumers import it instead of `ph-scuba-parent-pom`. When adding a new module, add it to this BOM as well.
 
 ### ph-scuba-api
 Pure interfaces and exceptions. Defines `IScubaUploader` (upload contract), `IUploadContentValidatorSPI` (Java ServiceLoader interface for file-extension-based content validation), and `IUploadContentValidatorRegistry` (dispatch interface with context path support for recursive validation).

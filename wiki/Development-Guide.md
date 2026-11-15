@@ -38,7 +38,8 @@ ph-scuba follows the conventions established across the ph-* ecosystem:
 When adding a new module:
 1. Add it to the parent POM `<modules>` section
 2. Define its dependencies in the parent POM `<dependencyManagement>` section
-3. Keep the dependency graph acyclic and layered (api -> core -> phive)
+3. Add it to the `<dependencyManagement>` section of `ph-scuba-bom`
+4. Keep the dependency graph acyclic and layered (api -> core -> phive)
 
 ## Reference Projects
 

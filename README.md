@@ -29,6 +29,7 @@ ph-scuba extracts and generalizes the upload mechanics so that **any** diver-bas
 ## Modules
 
 This library consists of the following submodules:
+* **`ph-scuba-bom`** - the Bill of Materials (BOM) that contains the versions of all ph-scuba artifacts for use in `<dependencyManagement>`.
 * **`ph-scuba-api`** - contains the generic upload interface (`IScubaUploader`), the content validation SPI (`IUploadContentValidatorSPI`), the validation registry interface (`IUploadContentValidatorRegistry`), and repository exception classes. This module has no implementation dependencies.
 * **`ph-scuba-core`** - contains the main upload pipeline implementation (`ScubaUploader`), the content validator dispatcher (`UploadContentValidator`), uploader settings (`ScubaUploaderSettings`), and built-in content validators for common file types (`.xsd`, `.sch`, `.xslt`, `.zip`).
 * **`ph-scuba-phive`** - contains [phive](https://github.com/phax/phive)-specific content validators for VES (`.ves`) and VES Status (`.status`) files, the phive upload convenience class (`PhiveUploader`) for VES lifecycle management, and the SPDX license validation helper. This module is optional - only needed when uploading phive validation artifacts.
@@ -110,12 +111,12 @@ For phive VES/VESStatus support, also add:
 </dependency>
 ```
 
-Alternate usage as a Maven BOM:
+Alternate usage as a Maven BOM (put it in the `<dependencyManagement>` section and omit the versions of the ph-scuba dependencies):
 
 ```xml
 <dependency>
   <groupId>com.helger.scuba</groupId>
-  <artifactId>scuba-parent-pom</artifactId>
+  <artifactId>ph-scuba-bom</artifactId>
   <version>x.y.z</version>
   <type>pom</type>
   <scope>import</scope>
@@ -141,6 +142,9 @@ mvn clean install
 | [ph-commons](https://github.com/phax/ph-commons) | Common Java utilities used throughout the ph-* ecosystem |
 
 ## News and Noteworthy
+
+v1.1.1 - work in progress
+* Added new submodule `ph-scuba-bom` as a dedicated Maven BOM. It should be used instead of `ph-scuba-parent-pom` for importing
 
 v1.1.0 - 2026-07-17
 * Updated to ph-schematron v10.x

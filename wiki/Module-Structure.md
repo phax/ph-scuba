@@ -5,11 +5,30 @@ ph-scuba follows the established ph-* Maven multi-module pattern.
 ## Modules
 
 ```
-scuba (parent POM)
+ph-scuba-parent-pom (parent POM)
+├── ph-scuba-bom           Bill of Materials for all ph-scuba artifacts
 ├── ph-scuba-api           Generic upload and content validation API (incl. SPI)
 ├── ph-scuba-core          Main business logic (upload pipeline)
 └── ph-scuba-phive         Phive-specific content validators and VES upload logic
 ```
+
+---
+
+### ph-scuba-bom
+
+The BOM module lists all ph-scuba artifacts with their version in `<dependencyManagement>`. Consumers import it to manage the versions of all ph-scuba artifacts in one place:
+
+```xml
+<dependency>
+  <groupId>com.helger.scuba</groupId>
+  <artifactId>ph-scuba-bom</artifactId>
+  <version>x.y.z</version>
+  <type>pom</type>
+  <scope>import</scope>
+</dependency>
+```
+
+When a new module is added, it must also be added to the BOM.
 
 ---
 
@@ -149,7 +168,8 @@ ph-xml ◄───────┘        ▲
 ## Maven Parent POM
 
 The parent POM:
-- Inherits from `com.helger:parent-pom:3.0.3`
+- Inherits from `com.helger:parent-pom:3.2.0`
 - GroupId: `com.helger.scuba`
-- Imports ph-diver, ph-commons, and phive BOMs via `<dependencyManagement>`
+- Imports the ph-commons, ph-web, ph-diver, phive, ph-schematron and JAXB BOMs via `<dependencyManagement>`
+- Manages the `junit` version, which is not part of the imported BOMs
 - Shared plugin configuration (compiler, surefire, etc.) is inherited from parent-pom
