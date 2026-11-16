@@ -67,7 +67,7 @@
     <ph-web.version>11.5.1</ph-web.version>
     <ph-diver.version>4.2.3</ph-diver.version>
     <phive.version>12.3.0</phive.version>
-    <ph-schematron.version>10.3.2</ph-schematron.version>
+    <ph-schematron.version>10.3.3</ph-schematron.version>
   </properties>
 
   <dependencyManagement>
