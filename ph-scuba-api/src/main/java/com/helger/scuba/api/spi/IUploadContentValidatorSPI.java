@@ -39,7 +39,8 @@ public interface IUploadContentValidatorSPI
 {
   /**
    * @return The set of file extensions this validator can handle. Each extension must start with a
-   *         dot (e.g., ".xsd", ".sch"). Never <code>null</code> and never empty.
+   *         dot and must be in lower case (e.g., ".xsd", ".sch"), because file extensions are
+   *         matched case-insensitively. Never <code>null</code> and never empty.
    */
   @NonNull
   @Nonempty
@@ -73,7 +74,8 @@ public interface IUploadContentValidatorSPI
    * Validate the content of a file with the given extension.
    *
    * @param sFileExt
-   *        The file extension including the leading dot (e.g., ".xsd"). Never <code>null</code>.
+   *        The file extension including the leading dot in lower case (e.g., ".xsd"). Never
+   *        <code>null</code>.
    * @param aIS
    *        The input stream to read the content from. Will be closed by the caller. Never
    *        <code>null</code>.

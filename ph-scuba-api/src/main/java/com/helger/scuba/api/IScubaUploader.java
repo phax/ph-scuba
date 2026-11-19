@@ -62,9 +62,12 @@ public interface IScubaUploader
    * @param aPayload
    *        The payload to upload. May not be <code>null</code>.
    * @throws IOException
-   *         On IO error
+   *         On IO error, including a failed write
    * @throws ScubaException
-   *         If some scuba constraints don't match
+   *         If some scuba constraints don't match: the content is not valid, there is no content
+   *         validator for the file extension and uploading unknown extensions is disabled, or the
+   *         artefact already exists and overwriting is disabled
+   *         ({@link com.helger.scuba.api.repo.RepoKeyAlreadyInUseException})
    */
   void addResource (@NonNull DVRCoordinate aCoordinate,
                     @NonNull IReadableResource aPayload) throws IOException, ScubaException;
@@ -75,20 +78,26 @@ public interface IScubaUploader
    * @param aCoordinate
    *        The DVR coordinate. May not be <code>null</code>.
    * @param sFileExt
-   *        The file extension including the leading dot. May not be <code>null</code>.
+   *        The file extension. The leading dot is added if missing. May neither be
+   *        <code>null</code> nor empty.
    * @return {@code true} if the resource exists, {@code false} otherwise.
    */
   boolean existsResource (@NonNull DVRCoordinate aCoordinate, @NonNull String sFileExt);
 
   /**
    * Delete a resource from the repository.
+   * <p>
+   * Note: the repository removes the version of the coordinate from the table of contents of the
+   * group and artifact, even if other resources with the same coordinate but a different file
+   * extension remain in the repository.
    *
    * @param aCoordinate
    *        The DVR coordinate. May not be <code>null</code>.
    * @param sFileExt
-   *        The file extension including the leading dot. May not be <code>null</code>.
+   *        The file extension. The leading dot is added if missing. May neither be
+   *        <code>null</code> nor empty.
    * @throws IOException
-   *         On IO error
+   *         On IO error or if deleting failed
    */
   void deleteResource (@NonNull DVRCoordinate aCoordinate, @NonNull String sFileExt) throws IOException;
 }
