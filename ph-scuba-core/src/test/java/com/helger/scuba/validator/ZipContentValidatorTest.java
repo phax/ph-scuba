@@ -32,6 +32,7 @@ import org.junit.Test;
 import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
 import com.helger.base.io.nonblocking.NonBlockingByteArrayOutputStream;
 import com.helger.diagnostics.error.list.ErrorList;
+import com.helger.io.zip.ZipWalkerSettings;
 import com.helger.scuba.api.spi.IUploadContentValidatorRegistry;
 
 /**
@@ -77,13 +78,18 @@ public final class ZipContentValidatorTest
   public void testInvalidZip () throws Exception
   {
     final ErrorList aErrors = new ErrorList ();
-    // Not a valid ZIP - but ZipInputStream may not throw; it just returns null entries
-    // This should still return true (no entries to validate)
+    // ZipInputStream silently returns 0 entries for non-ZIP data - the header must be checked
     final boolean bResult = VALIDATOR.isValidContent (".zip",
                                                       new NonBlockingByteArrayInputStream ("not a zip".getBytes (StandardCharsets.UTF_8)),
                                                       aErrors);
-    // ZipInputStream silently returns 0 entries for non-ZIP data
-    assertTrue (bResult);
+    assertFalse (bResult);
+    assertEquals (1, aErrors.size ());
+    assertTrue (aErrors.get (0).getAsStringLocaleIndepdent ().contains ("not a ZIP archive"));
+
+    // Empty content
+    aErrors.clear ();
+    assertFalse (VALIDATOR.isValidContent (".zip", new NonBlockingByteArrayInputStream (new byte [0]), aErrors));
+    assertEquals (1, aErrors.size ());
   }
 
   /**
@@ -162,6 +168,62 @@ public final class ZipContentValidatorTest
   }
 
   @Test
+  public void testNestedZipNotAZip () throws Exception
+  {
+    final NonBlockingByteArrayOutputStream aBAOS = new NonBlockingByteArrayOutputStream ();
+    try (final ZipOutputStream aZOS = new ZipOutputStream (aBAOS))
+    {
+      aZOS.putNextEntry (new ZipEntry ("inner.zip"));
+      aZOS.write ("not a zip".getBytes (StandardCharsets.UTF_8));
+      aZOS.closeEntry ();
+    }
+
+    final ErrorList aErrors = new ErrorList ();
+    assertFalse (_createValidatorWithRegistry ().isValidContent (".zip", aBAOS.getAsInputStream (), aErrors));
+    assertEquals (1, aErrors.size ());
+    assertTrue (aErrors.get (0).getAsStringLocaleIndepdent (),
+                aErrors.get (0).getAsStringLocaleIndepdent ().contains ("zip:inner.zip: The content is not a ZIP archive"));
+  }
+
+  @Test
+  public void testMaxNestingDepth () throws Exception
+  {
+    // Exactly the maximum depth is okay
+    byte [] aZip = _createInnerZip ("test.txt", "hello".getBytes (StandardCharsets.UTF_8));
+    for (int i = 0; i < ZipWalkerSettings.DEFAULT_MAX_NESTING_DEPTH; ++i)
+      aZip = _createInnerZip ("level" + i + ".zip", aZip);
+
+    ErrorList aErrors = new ErrorList ();
+    assertTrue (aErrors.toString (),
+                _createValidatorWithRegistry ().isValidContent (".zip",
+                                                                new NonBlockingByteArrayInputStream (aZip),
+                                                                aErrors));
+
+    // One more level is too deep
+    aZip = _createInnerZip ("toodeep.zip", aZip);
+    aErrors = new ErrorList ();
+    assertFalse (_createValidatorWithRegistry ().isValidContent (".zip",
+                                                                 new NonBlockingByteArrayInputStream (aZip),
+                                                                 aErrors));
+    assertEquals (1, aErrors.size ());
+    assertTrue (aErrors.get (0).getAsStringLocaleIndepdent (),
+                aErrors.get (0).getAsStringLocaleIndepdent ().contains ("maximum nesting depth"));
+  }
+
+  @Test
+  public void testUpperCaseNestedZip () throws Exception
+  {
+    final byte [] aInnerZip = _createInnerZip ("bad.xsd", "not xml at all".getBytes (StandardCharsets.UTF_8));
+    final byte [] aZip = _createInnerZip ("INNER.ZIP", aInnerZip);
+
+    final ErrorList aErrors = new ErrorList ();
+    assertFalse (_createValidatorWithRegistry ().isValidContent (".zip",
+                                                                 new NonBlockingByteArrayInputStream (aZip),
+                                                                 aErrors));
+    assertFalse (aErrors.isEmpty ());
+  }
+
+  @Test
   public void testNestedZipWithValidXsd () throws Exception
   {
     // Inner zip contains a valid dummy .xsd
@@ -184,5 +246,38 @@ public final class ZipContentValidatorTest
     final ZipContentValidator aValidator = _createValidatorWithRegistry ();
     assertTrue (aValidator.isValidContent (".zip", aBAOS.getAsInputStream (), aErrors));
     assertTrue (aErrors.isEmpty ());
+  }
+
+  @Test
+  public void testCustomSettings () throws Exception
+  {
+    final NonBlockingByteArrayOutputStream aBAOS = new NonBlockingByteArrayOutputStream ();
+    try (final ZipOutputStream aZOS = new ZipOutputStream (aBAOS))
+    {
+      for (final String sName : new String [] { "a.txt", "b.txt" })
+      {
+        aZOS.putNextEntry (new ZipEntry (sName));
+        aZOS.write (sName.getBytes (StandardCharsets.UTF_8));
+        aZOS.closeEntry ();
+      }
+    }
+
+    final ZipWalkerSettings aOld = ZipContentValidator.getSettings ();
+    try
+    {
+      ZipContentValidator.setSettings (new ZipWalkerSettings ().setMaxEntryCount (1));
+      final ErrorList aErrors = new ErrorList ();
+      assertFalse (VALIDATOR.isValidContent (".zip", aBAOS.getAsInputStream (), aErrors));
+      assertEquals (1, aErrors.size ());
+      assertTrue (aErrors.get (0).getAsStringLocaleIndepdent (),
+                  aErrors.get (0).getAsStringLocaleIndepdent ().contains ("zip:b.txt: The ZIP archive contains more than 1 entries"));
+    }
+    finally
+    {
+      ZipContentValidator.setSettings (aOld);
+    }
+
+    // Default again
+    assertTrue (VALIDATOR.isValidContent (".zip", aBAOS.getAsInputStream (), new ErrorList ()));
   }
 }

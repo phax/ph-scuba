@@ -51,6 +51,22 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
   private static final Logger LOGGER = LoggerFactory.getLogger (UploadContentValidator.class);
   private final ICommonsList <IUploadContentValidatorSPI> m_aValidators;
 
+  @NonNull
+  private static String _unifyFileExt (@NonNull final String sFileExt)
+  {
+    return sFileExt.toLowerCase (Locale.ROOT);
+  }
+
+  @Nullable
+  private IUploadContentValidatorSPI _findValidator (@NonNull final String sFileExt)
+  {
+    final String sRealFileExt = _unifyFileExt (sFileExt);
+    for (final IUploadContentValidatorSPI aValidator : m_aValidators)
+      if (aValidator.getSupportedFileExtensions ().contains (sRealFileExt))
+        return aValidator;
+    return null;
+  }
+
   /**
    * Constructor. Loads all {@link IUploadContentValidatorSPI} implementations via
    * {@link ServiceLoader} and initializes them with the provided repository storage.
@@ -66,6 +82,19 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
     m_aValidators = new CommonsArrayList <> ();
     for (final IUploadContentValidatorSPI aValidator : ServiceLoader.load (IUploadContentValidatorSPI.class))
     {
+      // Check all supported file extensions for duplicates
+      for (final String sFileExt : aValidator.getSupportedFileExtensions ())
+      {
+        final IUploadContentValidatorSPI aExisting = _findValidator (sFileExt);
+        if (aExisting != null)
+          LOGGER.warn ("The upload content validator '" +
+                       aValidator.getClass ().getName () +
+                       "' is ignored for file extension '" +
+                       sFileExt +
+                       "' because '" +
+                       aExisting.getClass ().getName () +
+                       "' was loaded before for it");
+      }
       aValidator.initRepoStorage (aRepo);
       aValidator.initContentValidatorRegistry (this);
       m_aValidators.add (aValidator);
@@ -74,15 +103,6 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
                    "' for extensions " +
                    aValidator.getSupportedFileExtensions ());
     }
-  }
-
-  @Nullable
-  private IUploadContentValidatorSPI _findValidator (@NonNull final String sFileExt)
-  {
-    for (final IUploadContentValidatorSPI aValidator : m_aValidators)
-      if (aValidator.getSupportedFileExtensions ().contains (sFileExt))
-        return aValidator;
-    return null;
   }
 
   public boolean hasValidatorForExtension (@NonNull final String sFileExt)
@@ -115,7 +135,7 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
 
       // Collect errors in a local list so we can prefix them with context path
       final ErrorList aLocalErrors = new ErrorList ();
-      final boolean bValid = aValidator.isValidContent (sFileExt, aIS, aLocalErrors);
+      final boolean bValid = aValidator.isValidContent (_unifyFileExt (sFileExt), aIS, aLocalErrors);
 
       // Transfer errors with context path prefix
       for (final IError aError : aLocalErrors)

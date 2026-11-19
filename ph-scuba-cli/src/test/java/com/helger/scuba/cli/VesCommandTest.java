@@ -306,4 +306,43 @@ public final class VesCommandTest
     assertEquals (ScubaCli.EXIT_USAGE,
                   CliRunner.run ("ves", "latest", "--basedir", m_sBaseDir, "com.test:myves:1.0").exitCode ());
   }
+
+  @Test
+  public void testAddDryRun () throws Exception
+  {
+    final File aVesFile = _createVesFile ("1.0");
+    CliResult aResult = CliRunner.run ("ves", "add", "--basedir", m_sBaseDir, "--dry-run", aVesFile.getAbsolutePath ());
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out ().contains ("Dry run"));
+
+    aResult = CliRunner.run ("versions", "--basedir", m_sBaseDir, "com.test:myves");
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+  }
+
+  @Test
+  public void testVersions () throws Exception
+  {
+    // Nothing there yet
+    CliResult aResult = CliRunner.run ("versions", "--basedir", m_sBaseDir, "com.test:myves");
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+    assertEquals ("", aResult.out ());
+
+    final String sVESID20 = _addVes ("2.0-SNAPSHOT");
+    final String sVESID10 = _addVes ("1.0");
+    final String sVESID11 = _addVes ("1.1");
+
+    // Only the coordinates on stdout, in ascending order
+    aResult = CliRunner.run ("versions", "--basedir", m_sBaseDir, "com.test:myves");
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertEquals (sVESID10 + "\n" + sVESID11 + "\n" + sVESID20, aResult.out ().trim ().replace ("\r\n", "\n"));
+
+    // Works for any artefact
+    aResult = CliRunner.run ("versions", "--basedir", m_sBaseDir, "com.test:mini");
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertEquals ("com.test:mini:1", aResult.out ().trim ());
+
+    // Invalid group and artifact
+    assertEquals (ScubaCli.EXIT_USAGE,
+                  CliRunner.run ("versions", "--basedir", m_sBaseDir, "com.test:myves:1.0").exitCode ());
+  }
 }

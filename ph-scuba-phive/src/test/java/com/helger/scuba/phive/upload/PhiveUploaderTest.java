@@ -42,6 +42,7 @@ import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
 import com.helger.diver.repo.IRepoStorageReadItem;
 import com.helger.diver.repo.RepoStorageContentByteArray;
+import com.helger.diver.repo.RepoStorageKey;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.diver.repo.impl.RepoStorageLocalFileSystem;
@@ -84,6 +85,16 @@ public final class PhiveUploaderTest
   private static DVRCoordinate _createCoord ()
   {
     return new DVRCoordinate ("com.test", "myves", DVRVersion.parseOrNull ("1.0"));
+  }
+
+  /**
+   * Write a dummy VES directly to the repository, without checking it, because the status of a VES
+   * can only be modified if the VES exists.
+   */
+  private static void _writeDummyVES (@NonNull final IRepoStorageWithToc aRepo, @NonNull final DVRCoordinate aCoord)
+  {
+    assertTrue (aRepo.write (RepoStorageKeyOfArtefact.of (aCoord, VESLoader.FILE_EXT_VES),
+                             RepoStorageContentByteArray.ofUtf8 ("<ves />")).isSuccess ());
   }
 
   /**
@@ -279,6 +290,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     final EChange eChange = aPhiveUploader.setVESDeprecated (aCoord, "No longer maintained");
     assertEquals (EChange.CHANGED, eChange);
@@ -299,6 +311,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
     final DVRCoordinate aReplacement = new DVRCoordinate ("com.test", "myves", DVRVersion.parseOrNull ("2.0"));
     // The replacement must exist
     aRepo.write (RepoStorageKeyOfArtefact.of (aReplacement, VESLoader.FILE_EXT_VES),
@@ -343,6 +356,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo).setAuthor ("Jane Doe");
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
     assertEquals ("Jane Doe", aPhiveUploader.getAuthor ());
 
     assertEquals (EChange.CHANGED, aPhiveUploader.setVESDeprecated (aCoord, null));
@@ -361,6 +375,7 @@ public final class PhiveUploaderTest
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     assertFalse (aPhiveUploader.isFailOnStatusHashMismatch ());
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
     final OffsetDateTime aFrom = OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     assertEquals (EChange.CHANGED, aPhiveUploader.setVESValidityDate (aCoord, aFrom, null));
 
@@ -394,6 +409,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     // First deprecation
     assertEquals (EChange.CHANGED, aPhiveUploader.setVESDeprecated (aCoord, "old"));
@@ -412,6 +428,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     // Pre-populate with a non-deprecated status that has a history item
     final VesStatusType aInitial = new VesStatusType ();
@@ -440,6 +457,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     final OffsetDateTime aFrom = OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     final OffsetDateTime aTo = OffsetDateTime.of (2026, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC);
@@ -461,6 +479,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     final OffsetDateTime aFrom = OffsetDateTime.of (2026, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     assertEquals (EChange.CHANGED, aPhiveUploader.setVESValidityDate (aCoord, aFrom, null));
@@ -476,6 +495,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     final OffsetDateTime aTo = OffsetDateTime.of (2026, 12, 31, 0, 0, 0, 0, ZoneOffset.UTC);
     assertEquals (EChange.CHANGED, aPhiveUploader.setVESValidityDate (aCoord, null, aTo));
@@ -491,6 +511,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     final OffsetDateTime aFrom = OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     final OffsetDateTime aTo = OffsetDateTime.of (2026, 12, 31, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -508,6 +529,7 @@ public final class PhiveUploaderTest
     final IRepoStorageWithToc aRepo = _createRepo ();
     final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
     final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
 
     final OffsetDateTime aFrom1 = OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     final OffsetDateTime aTo1 = OffsetDateTime.of (2026, 6, 30, 0, 0, 0, 0, ZoneOffset.UTC);
@@ -521,5 +543,101 @@ public final class PhiveUploaderTest
     final VesStatusType aStatus = _readStatus (aRepo, aCoord);
     // Should have 2 history items
     assertEquals (2, aStatus.getHistory ().getHistoryItem ().size ());
+  }
+
+  @Test
+  public void testSetStatusOfMissingVES ()
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+    final DVRCoordinate aCoord = _createCoord ();
+
+    try
+    {
+      aPhiveUploader.setVESDeprecated (aCoord, "old");
+      fail ();
+    }
+    catch (final IllegalStateException ex)
+    {
+      // expected
+    }
+    try
+    {
+      aPhiveUploader.setVESValidityDate (aCoord, OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), null);
+      fail ();
+    }
+    catch (final IllegalStateException ex)
+    {
+      // expected
+    }
+
+    // Nothing was written, so the version is not in the ToC
+    assertFalse (aRepo.exists (RepoStorageKeyOfArtefact.of (aCoord, VESLoader.FILE_EXT_STATUS)));
+    assertNull (aRepo.getLatestVersion (aCoord.getGroupID (), aCoord.getArtifactID ()));
+  }
+
+  @Test
+  public void testSetVESValidityDateCombinedWithExisting ()
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+    final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
+
+    final OffsetDateTime aTo = OffsetDateTime.of (2026, 6, 30, 0, 0, 0, 0, ZoneOffset.UTC);
+    assertEquals (EChange.CHANGED, aPhiveUploader.setVESValidityDate (aCoord, null, aTo));
+
+    // ValidFrom after the existing ValidTo
+    try
+    {
+      aPhiveUploader.setVESValidityDate (aCoord, OffsetDateTime.of (2026, 12, 1, 0, 0, 0, 0, ZoneOffset.UTC), null);
+      fail ();
+    }
+    catch (final IllegalArgumentException ex)
+    {
+      // expected
+    }
+
+    // ValidFrom before the existing ValidTo
+    assertEquals (EChange.CHANGED,
+                  aPhiveUploader.setVESValidityDate (aCoord,
+                                                     OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC),
+                                                     null));
+  }
+
+  @Test
+  public void testSetVESDeprecatedMissingStatusHash () throws Exception
+  {
+    final File aBaseDir = m_aTempFolder.newFolder ("repo");
+    final RepoStorageLocalFileSystem aRepo = new RepoStorageLocalFileSystem (aBaseDir,
+                                                                             "test",
+                                                                             ERepoWritable.WITH_WRITE,
+                                                                             ERepoDeletable.WITH_DELETE);
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+    final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
+    final OffsetDateTime aFrom = OffsetDateTime.of (2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+    assertEquals (EChange.CHANGED, aPhiveUploader.setVESValidityDate (aCoord, aFrom, null));
+
+    // Delete the hash value of the status
+    final File aStatusFile = aRepo.getRelativeFile (RepoStorageKeyOfArtefact.of (aCoord, VESLoader.FILE_EXT_STATUS));
+    final File aHashFile = new File (aStatusFile.getPath () + RepoStorageKey.FILE_EXT_SHA256);
+    assertTrue (aHashFile.delete ());
+
+    // Enabled: refused, because the hash value cannot be verified
+    aPhiveUploader.setFailOnStatusHashMismatch (true);
+    try
+    {
+      aPhiveUploader.setVESDeprecated (aCoord, "End of life");
+      fail ();
+    }
+    catch (final IllegalStateException ex)
+    {
+      // expected
+    }
+
+    // Default: accepted
+    aPhiveUploader.setFailOnStatusHashMismatch (false);
+    assertEquals (EChange.CHANGED, aPhiveUploader.setVESDeprecated (aCoord, "End of life"));
   }
 }

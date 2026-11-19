@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 import com.helger.annotation.Nonempty;
 import com.helger.annotation.concurrent.Immutable;
+import com.helger.annotation.style.ReturnsMutableCopy;
 import com.helger.base.exception.InitializationException;
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsHashMap;
@@ -138,13 +139,15 @@ public final class SPDXHelper
    *
    * @param sName
    *        The license name. May be <code>null</code>.
-   * @return The set of matching SPDX IDs, or <code>null</code> if the name is not found.
+   * @return A copy of the set of matching SPDX IDs, or <code>null</code> if the name is not found.
    */
   @Nullable
+  @ReturnsMutableCopy
   public static ICommonsSet <String> getAllSpdxIDsOfName (@Nullable final String sName)
   {
     if (StringHelper.isEmpty (sName))
       return null;
-    return NAME_TO_IDS.get (_unify (sName));
+    final ICommonsSet <String> ret = NAME_TO_IDS.get (_unify (sName));
+    return ret == null ? null : ret.getClone ();
   }
 }

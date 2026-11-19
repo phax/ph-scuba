@@ -55,5 +55,9 @@ public final class SPDXHelperTest
     _testOnlyOneInSet ("Apache-2.0", SPDXHelper.getAllSpdxIDsOfName ("Apache License 2.0"));
     _testOnlyOneInSet ("Apache-2.0", SPDXHelper.getAllSpdxIDsOfName ("apache license 2.0"));
     _testOnlyOneInSet ("Apache-2.0", SPDXHelper.getAllSpdxIDsOfName ("APACHE LICENSE 2.0"));
+
+    // A copy is returned
+    SPDXHelper.getAllSpdxIDsOfName ("Apache License 2.0").add ("MIT");
+    _testOnlyOneInSet ("Apache-2.0", SPDXHelper.getAllSpdxIDsOfName ("Apache License 2.0"));
   }
 }

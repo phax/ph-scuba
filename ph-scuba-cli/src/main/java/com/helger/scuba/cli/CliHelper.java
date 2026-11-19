@@ -31,8 +31,10 @@ import com.helger.base.log.ILogHandler;
 import com.helger.base.string.StringHelper;
 import com.helger.base.string.StringHex;
 import com.helger.diagnostics.error.IError;
+import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.level.EErrorLevel;
 import com.helger.diver.api.coord.DVRCoordinate;
+import com.helger.io.file.FilenameHelper;
 import com.helger.security.messagedigest.EMessageDigestAlgorithm;
 
 import picocli.CommandLine.Model.CommandSpec;
@@ -51,6 +53,27 @@ final class CliHelper
   {}
 
   /**
+   * Get the text of an error for the output. The message of a linked exception is omitted if the
+   * error text already contains it, as it is the case for XML parsing errors.
+   *
+   * @param aError
+   *        The error. May not be <code>null</code>.
+   * @return The text to print. Never <code>null</code>.
+   */
+  @NonNull
+  private static String _getErrorText (@NonNull final IError aError)
+  {
+    final String sExMsg = aError.getLinkedExceptionMessage ();
+    if (StringHelper.isNotEmpty (sExMsg))
+    {
+      final String sErrorText = aError.getErrorText (Locale.ROOT);
+      if (sErrorText != null && sErrorText.contains (sExMsg))
+        return SingleError.builder (aError).linkedException (null).build ().getAsStringLocaleIndepdent ();
+    }
+    return aError.getAsStringLocaleIndepdent ();
+  }
+
+  /**
    * Log all provided errors and warnings with their level.
    *
    * @param aLog
@@ -62,9 +85,9 @@ final class CliHelper
   {
     for (final IError aError : aErrors)
       if (aError.getErrorLevel ().isGE (EErrorLevel.ERROR))
-        aLog.error (aError.getAsStringLocaleIndepdent ());
+        aLog.error (_getErrorText (aError));
       else
-        aLog.warn (aError.getAsStringLocaleIndepdent ());
+        aLog.warn (_getErrorText (aError));
   }
 
   /**
@@ -81,6 +104,21 @@ final class CliHelper
   {
     if (!aFile.isFile ())
       throw new ParameterException (aSpec.commandLine (), "The file '" + aFile.getPath () + "' does not exist");
+  }
+
+  /**
+   * Get the file extension of a file.
+   *
+   * @param aFile
+   *        The file. May not be <code>null</code>.
+   * @return The file extension including the leading dot or <code>null</code> if the file name has
+   *         no extension.
+   */
+  @Nullable
+  static String getFileExt (@NonNull final File aFile)
+  {
+    final String sExt = FilenameHelper.getExtension (aFile);
+    return StringHelper.isEmpty (sExt) ? null : "." + sExt;
   }
 
   /**

@@ -26,6 +26,7 @@ import com.helger.config.ConfigFactory;
 import com.helger.config.IConfig;
 import com.helger.scuba.api.CScubaVersion;
 
+import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -47,8 +48,10 @@ import picocli.CommandLine.Spec;
           subcommands = { UploadCommand.class,
                           ValidateCommand.class,
                           ExistsCommand.class,
+                          VersionsCommand.class,
                           VesCommand.class,
-                          HelpCommand.class })
+                          HelpCommand.class,
+                          AutoComplete.GenerateCompletion.class })
 public final class ScubaCli implements Callable <Integer>
 {
   /** Exit code: success */
@@ -65,14 +68,23 @@ public final class ScubaCli implements Callable <Integer>
   /** Exit code: the artefact already exists in the repository and overwriting is not enabled */
   public static final int EXIT_CONFLICT = 4;
 
-  /**
-   * The product name and version, printed by <code>--version</code>, as header of the usage message
-   * and at the start of each command
-   */
-  static final String HEADLINE = "ph-scuba " + CScubaVersion.BUILD_VERSION;
 
   /** The slf4j-simple system property with the default log level */
   private static final String SLF4J_SIMPLE_DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
+
+  /**
+   * Get the product name and version, printed by <code>--version</code>, as header of the usage
+   * message and at the start of each command. This is a method and not a constant on purpose:
+   * reading the version creates a logger, which must not happen before {@link #main(String[])} set
+   * the log level for verbose mode.
+   *
+   * @return The headline. Never <code>null</code>.
+   */
+  @NonNull
+  static String getHeadline ()
+  {
+    return "ph-scuba " + CScubaVersion.BUILD_VERSION;
+  }
 
   /**
    * Provides the version for <code>--version</code>.
@@ -86,7 +98,7 @@ public final class ScubaCli implements Callable <Integer>
     @NonNull
     public String [] getVersion ()
     {
-      return new String [] { HEADLINE };
+      return new String [] { getHeadline () };
     }
   }
 
@@ -130,16 +142,17 @@ public final class ScubaCli implements Callable <Integer>
   }
 
   /**
-   * Set the headline as header of the usage message of the provided command and all its sub
-   * commands. This cannot be done in the annotation, because the version is not a compile time
-   * constant.
+   * Set the headline as header heading of the usage message of the provided command and all its
+   * sub commands. This cannot be done in the annotation, because the version is not a compile time
+   * constant. The header itself is not used, because picocli shows it instead of the description
+   * in the command list of the parent command.
    *
    * @param aCmd
    *        The command line to modify. May not be <code>null</code>.
    */
   private static void _setHeaderRecursive (@NonNull final CommandLine aCmd)
   {
-    aCmd.getCommandSpec ().usageMessage ().header (HEADLINE);
+    aCmd.getCommandSpec ().usageMessage ().headerHeading (getHeadline () + "%n");
     for (final CommandLine aSubCmd : aCmd.getSubcommands ().values ())
       _setHeaderRecursive (aSubCmd);
   }

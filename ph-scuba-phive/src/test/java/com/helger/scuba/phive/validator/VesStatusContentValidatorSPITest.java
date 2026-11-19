@@ -67,6 +67,27 @@ public final class VesStatusContentValidatorSPITest
   }
 
   @Test
+  public void testInvalidReplacementVersion ()
+  {
+    final VesStatusContentValidatorSPI aValidator = _createValidator ();
+    for (final String sVersion : new String [] { "latest", "latest-release", "" })
+    {
+      final String sStatus = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                             "<VesStatus xmlns='urn:com:helger:phive:ves:v1.0'\n" +
+                             "           groupId='com.test' artifactId='test' version='1.0' deprecated='true'>\n" +
+                             "  <replacement groupId='com.test' artifactId='test' version='" +
+                             sVersion +
+                             "' />\n" +
+                             "</VesStatus>";
+      final ErrorList aErrors = new ErrorList ();
+      // Must not throw an exception
+      assertFalse (sVersion,
+                   aValidator.isValidContent (VESLoader.FILE_EXT_STATUS, StringInputStream.utf8 (sStatus), aErrors));
+      assertFalse (sVersion, aErrors.isEmpty ());
+    }
+  }
+
+  @Test
   public void testDeprecationReasonWithoutFlag ()
   {
     // VES Status with deprecation reason but without deprecated=true

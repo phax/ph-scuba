@@ -25,15 +25,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.helger.annotation.Nonempty;
-import com.helger.annotation.Nonnegative;
 import com.helger.annotation.style.ReturnsMutableCopy;
 import com.helger.base.enforce.ValueEnforcer;
+import com.helger.base.io.stream.StreamHelper;
 import com.helger.base.state.EValidity;
 import com.helger.base.string.StringHelper;
 import com.helger.base.tostring.ToStringGenerator;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.IRepoStorageContent;
+import com.helger.diver.repo.RepoStorageContentByteArray;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.io.file.FilenameHelper;
@@ -51,33 +52,6 @@ import com.helger.scuba.validator.UploadContentValidator;
  */
 public class ScubaUploader implements IScubaUploader
 {
-  private static final class RepoStorageContentFromReadableResource implements IRepoStorageContent
-  {
-    private final IReadableResource m_aPayload;
-
-    private RepoStorageContentFromReadableResource (@NonNull final IReadableResource aPayload)
-    {
-      m_aPayload = aPayload;
-    }
-
-    public boolean isReadMultiple ()
-    {
-      return m_aPayload.isReadMultiple ();
-    }
-
-    @Nullable
-    public InputStream getInputStream ()
-    {
-      return m_aPayload.getInputStream ();
-    }
-
-    @Nonnegative
-    public long getLength ()
-    {
-      return m_aPayload.getAsFile ().length ();
-    }
-  }
-
   private static final Logger LOGGER = LoggerFactory.getLogger (ScubaUploader.class);
 
   private final IRepoStorageWithToc m_aRepo;
@@ -145,10 +119,79 @@ public class ScubaUploader implements IScubaUploader
     return m_aSettings.getClone ();
   }
 
-  @NonNull
+  /**
+   * Get the file extension of the provided payload.
+   *
+   * @param aPayload
+   *        The payload. May not be <code>null</code>.
+   * @return The file extension including the leading dot or <code>null</code> if the path of the
+   *         payload has no file extension.
+   */
+  @Nullable
   private static String _getFileExt (@NonNull final IReadableResource aPayload)
   {
-    return "." + FilenameHelper.getExtension (aPayload.getPath ());
+    final String sExt = FilenameHelper.getExtension (aPayload.getPath ());
+    return StringHelper.isEmpty (sExt) ? null : "." + sExt;
+  }
+
+  /**
+   * Make sure the file extension starts with a dot.
+   *
+   * @param sFileExt
+   *        The file extension with or without the leading dot. May not be <code>null</code>.
+   * @return The file extension with the leading dot.
+   */
+  @NonNull
+  private static String _getWithLeadingDot (@NonNull final String sFileExt)
+  {
+    return StringHelper.startsWith (sFileExt, '.') ? sFileExt : '.' + sFileExt;
+  }
+
+  /**
+   * Read the complete payload, so that the checked content is exactly the uploaded content.
+   *
+   * @param aPayload
+   *        The payload to read. May not be <code>null</code>.
+   * @return The content. Never <code>null</code>.
+   * @throws IOException
+   *         If the payload cannot be read.
+   */
+  @NonNull
+  private static IRepoStorageContent _readPayload (@NonNull final IReadableResource aPayload) throws IOException
+  {
+    final byte [] aBytes = StreamHelper.getAllBytes (aPayload);
+    if (aBytes == null)
+      throw new IOException ("Failed to read the resource '" + aPayload.getPath () + "'");
+    return RepoStorageContentByteArray.of (aBytes);
+  }
+
+  /**
+   * Check the content with the validator registered for the file extension.
+   *
+   * @param sContextPath
+   *        The context path for error messages. May not be <code>null</code>.
+   * @param sFileExt
+   *        The file extension including the leading dot. May not be <code>null</code>.
+   * @param aContent
+   *        The content to check. May not be <code>null</code>.
+   * @return <code>true</code> if the content is valid. All errors are logged.
+   * @throws IOException
+   *         On IO error
+   */
+  private boolean _isValidContent (@NonNull final String sContextPath,
+                                   @NonNull final String sFileExt,
+                                   @NonNull final IRepoStorageContent aContent) throws IOException
+  {
+    final ErrorList aErrorList = new ErrorList ();
+    final boolean bValid;
+    try (final InputStream aIS = aContent.getBufferedInputStream ())
+    {
+      bValid = m_aContentValidator.validateContent (sContextPath, sFileExt, aIS, aErrorList);
+    }
+    if (!bValid)
+      for (final var aError : aErrorList.getAllErrors ())
+        LOGGER.error (aError.getAsStringLocaleIndepdent ());
+    return bValid;
   }
 
   @NonNull
@@ -157,6 +200,11 @@ public class ScubaUploader implements IScubaUploader
     ValueEnforcer.notNull (aPayload, "Payload");
 
     final String sFileExt = _getFileExt (aPayload);
+    if (sFileExt == null)
+    {
+      LOGGER.error ("The resource '" + aPayload.getPath () + "' has no file extension");
+      return EValidity.INVALID;
+    }
 
     if (!m_aContentValidator.hasValidatorForExtension (sFileExt))
     {
@@ -164,16 +212,7 @@ public class ScubaUploader implements IScubaUploader
       return EValidity.valueOf (m_aSettings.isAllowUploadWithUnknownExtension ());
     }
 
-    final IRepoStorageContent aContent = new RepoStorageContentFromReadableResource (aPayload);
-    final ErrorList aErrorList = new ErrorList ();
-    final boolean bValid = m_aContentValidator.validateContent ("",
-                                                                sFileExt,
-                                                                aContent.getBufferedInputStream (),
-                                                                aErrorList);
-    if (!bValid)
-      for (final var aError : aErrorList.getAllErrors ())
-        LOGGER.error (aError.getAsStringLocaleIndepdent ());
-    return EValidity.valueOf (bValid);
+    return EValidity.valueOf (_isValidContent ("", sFileExt, _readPayload (aPayload)));
   }
 
   private void _uploadResource (@NonNull final DVRCoordinate aCoordinate,
@@ -183,23 +222,16 @@ public class ScubaUploader implements IScubaUploader
     // Content validation
     if (m_aContentValidator.hasValidatorForExtension (sFileExt))
     {
-      final ErrorList aErrorList = new ErrorList ();
-      if (!m_aContentValidator.validateContent (aCoordinate.getAsSingleID (),
-                                                sFileExt,
-                                                aContent.getBufferedInputStream (),
-                                                aErrorList))
+      // Logs all collected errors
+      if (!_isValidContent (aCoordinate.getAsSingleID (), sFileExt, aContent))
       {
-        // Log all collected errors
-        for (final var aError : aErrorList.getAllErrors ())
-          LOGGER.error (aError.getAsStringLocaleIndepdent ());
-
         final String sMsg = "Data for coordinate '" +
                             aCoordinate.getAsSingleID () +
                             "' does not match expectations of the file extension ('" +
                             sFileExt +
                             "')";
         LOGGER.error (sMsg);
-        throw new IllegalStateException (sMsg + " - see log for details");
+        throw new ScubaException (sMsg + " - see log for details");
       }
     }
     else
@@ -211,7 +243,7 @@ public class ScubaUploader implements IScubaUploader
                             sFileExt +
                             "' - no content validator registered and upload of unknown extensions is disabled";
         LOGGER.error (sMsg);
-        throw new IllegalArgumentException (sMsg);
+        throw new ScubaException (sMsg);
       }
 
       LOGGER.warn ("No content validator for file extension '" + sFileExt + "' - uploading without validation");
@@ -246,7 +278,7 @@ public class ScubaUploader implements IScubaUploader
     {
       final String sMsg = "Failed to write content of key '" + aKey.getPath () + "' to Repo '" + m_aRepo.getID () + "'";
       LOGGER.error (sMsg);
-      throw new IllegalStateException (sMsg);
+      throw new IOException (sMsg);
     }
   }
 
@@ -263,8 +295,16 @@ public class ScubaUploader implements IScubaUploader
       throw new IllegalArgumentException (sMsg);
     }
 
-    final IRepoStorageContent aContent = new RepoStorageContentFromReadableResource (aPayload);
-    _uploadResource (aCoordinate, aContent, _getFileExt (aPayload));
+    final String sFileExt = _getFileExt (aPayload);
+    if (sFileExt == null)
+    {
+      final String sMsg = "The provided resource '" + aPayload.getPath () + "' has no file extension";
+      LOGGER.error (sMsg);
+      throw new IllegalArgumentException (sMsg);
+    }
+
+    // Read once, so that the checked content is the uploaded content
+    _uploadResource (aCoordinate, _readPayload (aPayload), sFileExt);
   }
 
   /**
@@ -294,22 +334,32 @@ public class ScubaUploader implements IScubaUploader
 
   public boolean existsResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final String sFileExt)
   {
-    final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, sFileExt);
+    ValueEnforcer.notNull (aCoordinate, "Coordinate");
+    ValueEnforcer.notEmpty (sFileExt, "FileExt");
+
+    // Create StorageKey (must start with '.')
+    final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, _getWithLeadingDot (sFileExt));
     return m_aRepo.exists (aKey);
   }
 
-  public void deleteResource (@NonNull final DVRCoordinate aCoordinate, @NonNull final String sFileExt)
+  public void deleteResource (@NonNull final DVRCoordinate aCoordinate,
+                              @NonNull final String sFileExt) throws IOException
   {
+    ValueEnforcer.notNull (aCoordinate, "Coordinate");
+    ValueEnforcer.notEmpty (sFileExt, "FileExt");
     if (!m_aRepo.canDelete ())
       throw new IllegalStateException ("The underlying Repository object does not allow deletion");
 
     // Create StorageKey (must start with '.')
-    final String sRealFileExt = StringHelper.startsWith (sFileExt, '.') ? sFileExt : '.' + sFileExt;
-    final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, sRealFileExt);
+    final RepoStorageKeyOfArtefact aKey = RepoStorageKeyOfArtefact.of (aCoordinate, _getWithLeadingDot (sFileExt));
 
     // Delete from Repo
     if (m_aRepo.delete (aKey).isFailure ())
-      LOGGER.warn ("Failed to delete '" + aKey + "'");
+    {
+      final String sMsg = "Failed to delete '" + aKey.getPath () + "' from Repo '" + m_aRepo.getID () + "'";
+      LOGGER.error (sMsg);
+      throw new IOException (sMsg);
+    }
   }
 
   @Override

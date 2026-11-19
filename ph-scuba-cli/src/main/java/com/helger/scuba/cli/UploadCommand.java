@@ -23,7 +23,6 @@ import com.helger.base.log.ILogHandler;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
-import com.helger.io.file.FilenameHelper;
 import com.helger.io.resource.FileSystemResource;
 import com.helger.scuba.upload.ScubaUploader;
 import com.helger.scuba.upload.ScubaUploaderSettings;
@@ -32,6 +31,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.ParameterException;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
@@ -83,6 +83,11 @@ public final class UploadCommand implements Callable <Integer>
            description = "Allow uploading files with an extension for which no check exists, without checking them.")
   boolean m_bAllowUnknownExtension;
 
+  /** <code>true</code> to only check without uploading. */
+  @Option (names = "--dry-run",
+           description = "Perform all checks, including the hash value and the conflict check, but do not upload.")
+  boolean m_bDryRun;
+
   /** Constructor. Called by picocli. */
   public UploadCommand ()
   {}
@@ -90,8 +95,9 @@ public final class UploadCommand implements Callable <Integer>
   /**
    * Check the file and upload it.
    *
-   * @return {@link ScubaCli#EXIT_OK} if the file was uploaded, {@link ScubaCli#EXIT_FAILURE} if
-   *         its hash value does not match or its content is not valid, and
+   * @return {@link ScubaCli#EXIT_OK} if the file was uploaded (or would be uploaded in dry run
+   *         mode), {@link ScubaCli#EXIT_FAILURE} if its hash value does not match or its content is
+   *         not valid, and
    *         {@link ScubaCli#EXIT_CONFLICT} if the artefact already exists.
    * @throws Exception
    *         On technical errors
@@ -101,6 +107,12 @@ public final class UploadCommand implements Callable <Integer>
     final ILogHandler aLog = m_aLogOptions.createLogHandler (m_aSpec, false);
     final DVRCoordinate aCoordinate = CliHelper.parseStaticCoordinate (m_aSpec, m_sCoordinate);
     CliHelper.checkInputFile (m_aSpec, m_aFile);
+    final String sFileExt = CliHelper.getFileExt (m_aFile);
+    if (sFileExt == null)
+      throw new ParameterException (m_aSpec.commandLine (),
+                                    "The file '" +
+                                                          m_aFile.getPath () +
+                                                          "' has no file extension - it is needed to select the check and is part of the repository key");
 
     if (!CliHelper.checkSha256 (aLog, m_aFile, m_sExpectedSha256))
       return Integer.valueOf (ScubaCli.EXIT_FAILURE);
@@ -112,7 +124,6 @@ public final class UploadCommand implements Callable <Integer>
                                                          new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite)
                                                                                      .setAllowUploadWithUnknownExtension (m_bAllowUnknownExtension));
 
-      final String sFileExt = "." + FilenameHelper.getExtension (m_aFile);
       if (!aUploader.getContentValidator ().hasValidatorForExtension (sFileExt) && !m_bAllowUnknownExtension)
       {
         aLog.error ("There is no check for the file extension '" +
@@ -136,6 +147,20 @@ public final class UploadCommand implements Callable <Integer>
       {
         aLog.error ("The file '" + m_aFile.getPath () + "' is not valid - nothing was uploaded");
         return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
+
+      if (m_bDryRun)
+      {
+        aLog.info ("Dry run: '" +
+                   m_aFile.getPath () +
+                   "' would be uploaded as '" +
+                   aCoordinate.getAsSingleID () +
+                   "' with file extension '" +
+                   sFileExt +
+                   "' to repository '" +
+                   aRepo.getID () +
+                   "'");
+        return Integer.valueOf (ScubaCli.EXIT_OK);
       }
 
       aUploader.addResource (aCoordinate, aPayload);

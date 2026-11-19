@@ -19,7 +19,13 @@ package com.helger.scuba.cli;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.helger.scuba.cli.CliRunner.CliResult;
 
@@ -30,6 +36,9 @@ import com.helger.scuba.cli.CliRunner.CliResult;
  */
 public final class ValidateCommandTest
 {
+  @Rule
+  public final TemporaryFolder m_aTempFolder = new TemporaryFolder ();
+
   @Test
   public void testValidate ()
   {
@@ -48,5 +57,21 @@ public final class ValidateCommandTest
     assertTrue (aResult.err ().contains ("no check"));
 
     assertEquals (ScubaCli.EXIT_USAGE, CliRunner.run ("validate", "does-not-exist.xsd").exitCode ());
+
+    // Repository options without a repository
+    assertEquals (ScubaCli.EXIT_USAGE,
+                  CliRunner.run ("validate", "--toptoc", "diver-xml", "src/test/resources/external/valid.xsd")
+                           .exitCode ());
+  }
+
+  @Test
+  public void testValidateNoFileExtension () throws Exception
+  {
+    final File aFile = m_aTempFolder.newFile ("noext");
+    Files.writeString (aFile.toPath (), "data", StandardCharsets.UTF_8);
+
+    final CliResult aResult = CliRunner.run ("validate", aFile.getAbsolutePath ());
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+    assertTrue (aResult.err (), aResult.err ().contains ("has no file extension"));
   }
 }

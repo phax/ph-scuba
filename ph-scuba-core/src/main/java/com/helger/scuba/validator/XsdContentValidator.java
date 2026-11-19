@@ -29,6 +29,7 @@ import com.helger.collection.commons.ICommonsSet;
 import com.helger.diagnostics.error.SingleError;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
+import com.helger.xml.EXMLParserFeature;
 import com.helger.xml.XMLHelper;
 import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
 import com.helger.xml.serialize.read.DOMReader;
@@ -36,7 +37,8 @@ import com.helger.xml.serialize.read.DOMReaderSettings;
 
 /**
  * Content validator for XML Schema files (.xsd). Checks XML well-formedness and verifies root
- * element is {@code schema} in the W3C XML Schema namespace.
+ * element is {@code schema} in the W3C XML Schema namespace. Like phive loads XSDs, a DOCTYPE with
+ * an internal subset is allowed, but external DTDs and external entities are never loaded.
  *
  * @author Philip Helger
  */
@@ -65,6 +67,14 @@ public final class XsdContentValidator implements IUploadContentValidatorSPI
   {
     // Check well-formedness
     final DOMReaderSettings aDRS = new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList));
+    // Like phive loads XSDs (XMLSchemaCache.createXSDSchemaFactory): a DOCTYPE with an internal
+    // subset is allowed (e.g. the xmldsig XSD of UBL 2.1), but nothing external is loaded. Secure
+    // processing limits the entity expansion.
+    aDRS.setFeatureValue (EXMLParserFeature.SECURE_PROCESSING, true)
+        .setFeatureValue (EXMLParserFeature.DISALLOW_DOCTYPE_DECL, false)
+        .setFeatureValue (EXMLParserFeature.EXTERNAL_GENERAL_ENTITIES, false)
+        .setFeatureValue (EXMLParserFeature.EXTERNAL_PARAMETER_ENTITIES, false)
+        .setFeatureValue (EXMLParserFeature.LOAD_EXTERNAL_DTD, false);
     aDRS.exceptionCallbacks ()
         .set (ex -> aErrorList.add (SingleError.builderError ()
                                                .errorText ("Error parsing XML")

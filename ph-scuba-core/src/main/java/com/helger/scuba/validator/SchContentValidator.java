@@ -28,6 +28,8 @@ import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.io.resource.inmemory.ReadableResourceString;
 import com.helger.schematron.errorhandler.WrappedCollectingPSErrorHandler;
 import com.helger.schematron.exchange.PSReader;
+import com.helger.schematron.model.IPSElement;
+import com.helger.schematron.model.PSSchema;
 import com.helger.scuba.api.spi.IUploadContentValidatorSPI;
 import com.helger.xml.microdom.IMicroDocument;
 import com.helger.xml.microdom.serialize.MicroReader;
@@ -35,7 +37,10 @@ import com.helger.xml.sax.WrappedCollectingSAXErrorHandler;
 import com.helger.xml.serialize.read.SAXReaderSettings;
 
 /**
- * Content validator for Schematron files (.sch). Checks XML well-formedness.
+ * Content validator for Schematron files (.sch). Checks XML well-formedness, reads the Schematron
+ * and checks that it is a valid Schematron schema. Included files (<code>sch:include</code>) are
+ * not resolved, because only the uploaded file is available: their content is not checked, and a
+ * Schematron with includes does not need to contain a pattern itself.
  *
  * @author Philip Helger
  */
@@ -84,9 +89,35 @@ public final class SchContentValidator implements IUploadContentValidatorSPI
                                            null);
     try
     {
-      // Read from previously parsed DOM node (throws always in case of error)
-      aReader.readSchemaFromXML (aDoc.getDocumentElement ());
-      return true;
+      // Read from previously parsed DOM node (throws in case of a wrong root element)
+      final PSSchema aSchema = aReader.readSchemaFromXML (aDoc.getDocumentElement ());
+      if (!aSchema.hasAnyInclude ())
+      {
+        // Check the structure (e.g. at least one pattern, test attributes of asserts)
+        return aSchema.isValid (new WrappedCollectingPSErrorHandler (aErrorList));
+      }
+
+      // The included files cannot be resolved, because only this file is available
+      aErrorList.add (SingleError.builderWarn ()
+                                 .errorText ("The Schematron includes " +
+                                             aSchema.getAllIncludes ().size () +
+                                             " file(s) that are not resolved, so their content is not checked")
+                                 .build ());
+
+      // The patterns may all come from the included files, so the only error of the schema itself
+      // ("no patterns or groups") is ignored. All other elements are checked.
+      final ErrorList aStructureErrors = new ErrorList ();
+      aSchema.validateCompletely (new WrappedCollectingPSErrorHandler (aStructureErrors)
+      {
+        @Override
+        public void error (@NonNull final IPSElement aSourceElement, @NonNull final String sMessage)
+        {
+          if (aSourceElement != aSchema)
+            super.error (aSourceElement, sMessage);
+        }
+      });
+      aErrorList.addAll (aStructureErrors);
+      return aStructureErrors.containsNoError ();
     }
     catch (final Exception ex)
     {

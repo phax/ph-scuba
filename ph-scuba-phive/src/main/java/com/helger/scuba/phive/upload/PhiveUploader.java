@@ -17,6 +17,7 @@
 package com.helger.scuba.phive.upload;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.time.OffsetDateTime;
 
@@ -63,7 +64,11 @@ public class PhiveUploader
 {
   /** The default author name used in VES status history items. */
   public static final String AUTHOR_SYSTEM = "ph-scuba-phive";
-  /** Default: only warn if the hash value of an existing VES status does not match */
+  /**
+   * Default: only warn if the hash value of an existing VES status does not match
+   *
+   * @since 1.2.0
+   */
   public static final boolean DEFAULT_FAIL_ON_STATUS_HASH_MISMATCH = false;
 
   private static final Logger LOGGER = LoggerFactory.getLogger (PhiveUploader.class);
@@ -240,8 +245,8 @@ public class PhiveUploader
    *        The repository key of the status. May not be <code>null</code>.
    * @return <code>null</code> if no status exists.
    * @throws IllegalStateException
-   *         If the existing status cannot be read, or if its hash value does not match and
-   *         {@link #isFailOnStatusHashMismatch()} is enabled.
+   *         If the existing status cannot be read, or if its hash value was not verified as matching
+   *         and {@link #isFailOnStatusHashMismatch()} is enabled.
    */
   @Nullable
   private VesStatusType _readExistingStatus (@NonNull final RepoStorageKey aStatusKey)
@@ -250,7 +255,8 @@ public class PhiveUploader
     if (aOldReadStatus == null)
       return null;
 
-    if (aOldReadStatus.getHashState () == ERepoHashState.VERIFIED_NON_MATCHING)
+    final ERepoHashState eHashState = aOldReadStatus.getHashState ();
+    if (eHashState == ERepoHashState.VERIFIED_NON_MATCHING)
     {
       final String sMsg = "The hash value of the existing status '" +
                           aStatusKey.getPath () +
@@ -262,11 +268,43 @@ public class PhiveUploader
       }
       LOGGER.warn (sMsg);
     }
+    else
+      if (eHashState != ERepoHashState.VERIFIED_MATCHING && m_bFailOnStatusHashMismatch)
+      {
+        // E.g. the hash file is missing
+        final String sMsg = "The hash value of the existing status '" +
+                            aStatusKey.getPath () +
+                            "' could not be verified (" +
+                            eHashState.getDisplayName () +
+                            ") - it may have been tampered with";
+        LOGGER.error (sMsg);
+        throw new IllegalStateException (sMsg);
+      }
 
     final VesStatusType ret = new VESStatus1Marshaller ().read (aOldReadStatus.getContent ().getBufferedInputStream ());
     if (ret == null)
       throw new IllegalStateException ("Old status could not be read!");
     return ret;
+  }
+
+  /**
+   * Make sure the VES of the provided VESID exists, so that no status is written for a VES that is
+   * not in the repository. Writing the status would otherwise add the version to the table of
+   * contents.
+   *
+   * @param aVESID
+   *        The VESID to check. May not be <code>null</code>.
+   * @throws IllegalStateException
+   *         If the VES does not exist.
+   */
+  private void _checkVESExists (@NonNull final DVRCoordinate aVESID)
+  {
+    if (!m_aUploader.getRepoStorage ().exists (RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_VES)))
+    {
+      final String sMsg = "The VESID '" + aVESID.getAsSingleID () + "' does not exist in the repository";
+      LOGGER.error (sMsg);
+      throw new IllegalStateException (sMsg);
+    }
   }
 
   /**
@@ -303,13 +341,10 @@ public class PhiveUploader
     final RepoStorageContentByteArray aContent = RepoStorageContentByteArray.of (aStatusBytes);
     final ErrorList aErrorList = new ErrorList ();
     final boolean bValid;
-    try
+    try (final InputStream aIS = aContent.getBufferedInputStream ())
     {
       bValid = m_aUploader.getContentValidator ()
-                          .validateContent (aVESID.getAsSingleID (),
-                                            VESLoader.FILE_EXT_STATUS,
-                                            aContent.getBufferedInputStream (),
-                                            aErrorList);
+                          .validateContent (aVESID.getAsSingleID (), VESLoader.FILE_EXT_STATUS, aIS, aErrorList);
     }
     catch (final IOException ex)
     {
@@ -339,7 +374,7 @@ public class PhiveUploader
    * Mark a VES as deprecated. Reads the existing status (or creates a new one), sets the deprecated
    * flag and optionally a deprecation reason and replacement VESID, then writes it back. The
    * modified status is checked like an uploaded status before it is written, so a replacement VESID
-   * must exist in the repository.
+   * must exist in the repository. The VES itself must exist in the repository as well.
    *
    * @param aVESID
    *        The VESID to deprecate. Must be a static version. May not be <code>null</code>.
@@ -350,8 +385,8 @@ public class PhiveUploader
    * @return {@link EChange#CHANGED} if the deprecation was applied, {@link EChange#UNCHANGED} if
    *         already deprecated.
    * @throws IllegalStateException
-   *         If the existing status cannot be read or the modified status cannot be checked or
-   *         written.
+   *         If the VES does not exist, the existing status cannot be read or the modified status
+   *         cannot be checked or written.
    */
   @NonNull
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID,
@@ -360,6 +395,7 @@ public class PhiveUploader
   {
     ValueEnforcer.notNull (aVESID, "VESID");
     ValueEnforcer.isTrue (aVESID.getVersionObj ().isStaticVersion (), "Cannot set a pseudo version as deprecated");
+    _checkVESExists (aVESID);
 
     final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
     VesStatusType aStatus = _readExistingStatus (aStatusKey);
@@ -418,7 +454,8 @@ public class PhiveUploader
    * @return {@link EChange#CHANGED} if the deprecation was applied, {@link EChange#UNCHANGED} if
    *         already deprecated.
    * @throws IllegalStateException
-   *         If the existing status cannot be read or the modified status cannot be written.
+   *         If the VES does not exist, the existing status cannot be read or the modified status
+   *         cannot be checked or written.
    */
   @NonNull
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID, @Nullable final String sDeprecationReason)
@@ -435,7 +472,9 @@ public class PhiveUploader
   /**
    * Set the validity dates of a VES. Reads the existing status (or creates a new one), updates the
    * validFrom/validTo dates, then writes it back. The modified status is checked like an uploaded
-   * status before it is written.
+   * status before it is written. The VES must exist in the repository. If only one date is
+   * provided, the other one is taken from the existing status and the resulting validFrom must not
+   * be after the resulting validTo.
    *
    * @param aVESID
    *        The VESID to update. Must be a static version. May not be <code>null</code>.
@@ -447,9 +486,11 @@ public class PhiveUploader
    *        must be set.
    * @return {@link EChange#CHANGED} if the dates were updated, {@link EChange#UNCHANGED} if
    *         unchanged.
+   * @throws IllegalArgumentException
+   *         If the resulting validFrom is after the resulting validTo.
    * @throws IllegalStateException
-   *         If the existing status cannot be read or the modified status cannot be checked or
-   *         written.
+   *         If the VES does not exist, the existing status cannot be read or the modified status
+   *         cannot be checked or written.
    */
   @NonNull
   public EChange setVESValidityDate (@NonNull final DVRCoordinate aVESID,
@@ -457,10 +498,12 @@ public class PhiveUploader
                                      @Nullable final OffsetDateTime aValidTo)
   {
     ValueEnforcer.notNull (aVESID, "VESID");
-    ValueEnforcer.isTrue (aVESID.getVersionObj ().isStaticVersion (), "Cannot set a pseudo version as deprecated");
+    ValueEnforcer.isTrue (aVESID.getVersionObj ().isStaticVersion (),
+                          "Cannot set the validity dates of a pseudo version");
     ValueEnforcer.isTrue (aValidFrom != null || aValidTo != null, "ValidFrom or ValidTo must be set");
     if (aValidFrom != null && aValidTo != null)
       ValueEnforcer.isTrue (aValidFrom.compareTo (aValidTo) <= 0, "ValidFrom must not be after ValidTo");
+    _checkVESExists (aVESID);
 
     final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
     VesStatusType aStatus = _readExistingStatus (aStatusKey);
@@ -473,6 +516,16 @@ public class PhiveUploader
         LOGGER.warn ("VESID '" + aVESID.getAsSingleID () + "' already has the provided validity dates");
         return EChange.UNCHANGED;
       }
+
+      // Check the combination with the existing date
+      final OffsetDateTime aRealValidFrom = aValidFrom != null ? aValidFrom : _toODT (aStatus.getValidFrom ());
+      final OffsetDateTime aRealValidTo = aValidTo != null ? aValidTo : _toODT (aStatus.getValidTo ());
+      if (aRealValidFrom != null && aRealValidTo != null)
+        ValueEnforcer.isTrue (aRealValidFrom.compareTo (aRealValidTo) <= 0,
+                              () -> "The resulting ValidFrom " +
+                                    aRealValidFrom +
+                                    " must not be after the resulting ValidTo " +
+                                    aRealValidTo);
     }
     else
     {

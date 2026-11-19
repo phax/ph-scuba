@@ -46,7 +46,7 @@ public final class ScubaCliTest
     final CliResult aResult = CliRunner.run ();
     assertEquals (ScubaCli.EXIT_USAGE, aResult.exitCode ());
     assertTrue (aResult.err ().contains ("upload"));
-    assertTrue (aResult.err (), aResult.err ().startsWith (ScubaCli.HEADLINE));
+    assertTrue (aResult.err (), aResult.err ().startsWith (ScubaCli.getHeadline ()));
   }
 
   @Test
@@ -54,16 +54,18 @@ public final class ScubaCliTest
   {
     CliResult aResult = CliRunner.run ("--help");
     assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
-    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.getHeadline ()));
+    // The command list shows the descriptions, not the headline
+    assertEquals (aResult.out (), 1, aResult.out ().split (ScubaCli.getHeadline (), -1).length - 1);
 
     // Also for nested sub commands
     aResult = CliRunner.run ("ves", "add", "--help");
     assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
-    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.getHeadline ()));
 
     aResult = CliRunner.run ("help", "upload");
     assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
-    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.getHeadline ()));
   }
 
   @Test
@@ -82,13 +84,13 @@ public final class ScubaCliTest
 
     CliResult aResult = CliRunner.run ("exists", "--basedir", sBaseDir, "com.test:mini:1.0", "xsd");
     assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
-    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.getHeadline ()));
 
     // Not in quiet mode
     aResult = CliRunner.run ("exists", "-q", "--basedir", sBaseDir, "com.test:mini:1.0", "xsd");
     assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
-    assertFalse (aResult.out (), aResult.out ().contains (ScubaCli.HEADLINE));
-    assertFalse (aResult.err (), aResult.err ().contains (ScubaCli.HEADLINE));
+    assertFalse (aResult.out (), aResult.out ().contains (ScubaCli.getHeadline ()));
+    assertFalse (aResult.err (), aResult.err ().contains (ScubaCli.getHeadline ()));
   }
 
   @Test
@@ -119,6 +121,15 @@ public final class ScubaCliTest
     aResult = CliRunner.run ("exists", "-v", "--config", sConfig, "--repo", "r", "com.test:mini:1.0", "xsd");
     assertEquals (ScubaCli.EXIT_ERROR, aResult.exitCode ());
     assertTrue (aResult.err (), aResult.err ().contains ("\tat "));
+  }
+
+  @Test
+  public void testGenerateCompletion ()
+  {
+    final CliResult aResult = CliRunner.run ("generate-completion");
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out ().contains ("ph-scuba"));
+    assertTrue (aResult.out ().contains ("versions"));
   }
 
   @Test

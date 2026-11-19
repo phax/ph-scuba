@@ -195,4 +195,48 @@ public final class UploadCommandTest
     assertEquals (ScubaCli.EXIT_USAGE,
                   CliRunner.run ("upload", "--config", sConfig, "com.test:mini:1.0", VALID_XSD).exitCode ());
   }
+
+  @Test
+  public void testUploadDryRun () throws Exception
+  {
+    final String sBaseDir = m_aTempFolder.newFolder ("repo").getAbsolutePath ();
+
+    CliResult aResult = CliRunner.run ("upload", "--basedir", sBaseDir, "--dry-run", "com.test:mini:1.0", VALID_XSD);
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out ().contains ("Dry run"));
+    assertFalse (new File (sBaseDir, "com/test/mini/1/mini-1.xsd").exists ());
+
+    // The checks are performed
+    aResult = CliRunner.run ("upload",
+                             "--basedir",
+                             sBaseDir,
+                             "--dry-run",
+                             "com.test:mini:1.0",
+                             "src/test/resources/external/invalid.xsd");
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+
+    // Including the conflict check
+    assertEquals (ScubaCli.EXIT_OK,
+                  CliRunner.run ("upload", "--basedir", sBaseDir, "com.test:mini:1.0", VALID_XSD).exitCode ());
+    aResult = CliRunner.run ("upload", "--basedir", sBaseDir, "--dry-run", "com.test:mini:1.0", VALID_XSD);
+    assertEquals (ScubaCli.EXIT_CONFLICT, aResult.exitCode ());
+  }
+
+  @Test
+  public void testUploadNoFileExtension () throws Exception
+  {
+    final String sBaseDir = m_aTempFolder.newFolder ("repo").getAbsolutePath ();
+    final File aFile = m_aTempFolder.newFile ("noext");
+    Files.writeString (aFile.toPath (), "data", StandardCharsets.UTF_8);
+
+    final CliResult aResult = CliRunner.run ("upload",
+                                             "--basedir",
+                                             sBaseDir,
+                                             "--allow-unknown-extension",
+                                             "com.test:noext:1",
+                                             aFile.getAbsolutePath ());
+    assertEquals (ScubaCli.EXIT_USAGE, aResult.exitCode ());
+    assertTrue (aResult.err (), aResult.err ().contains ("has no file extension"));
+    assertFalse (new File (sBaseDir, "com/test/noext/1").exists ());
+  }
 }

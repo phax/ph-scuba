@@ -33,8 +33,8 @@ import com.helger.xml.serialize.read.DOMReader;
 import com.helger.xml.serialize.read.DOMReaderSettings;
 
 /**
- * Content validator for XSLT files (.xslt). Checks XML well-formedness and verifies root element is
- * {@code stylesheet} in the XSL Transform namespace.
+ * Content validator for XSLT files (.xslt and .xsl). Checks XML well-formedness and verifies root
+ * element is {@code stylesheet} or its synonym {@code transform} in the XSL Transform namespace.
  *
  * @author Philip Helger
  */
@@ -43,18 +43,25 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
 {
   /** The file extension handled by this validator. */
   public static final String FILE_EXT_XSLT = ".xslt";
+  /**
+   * The alternative file extension handled by this validator.
+   *
+   * @since 1.2.0
+   */
+  public static final String FILE_EXT_XSL = ".xsl";
 
   /** Default constructor. */
   public XsltContentValidator ()
   {}
 
   private static final String EXPECTED_LOCAL_NAME = "stylesheet";
+  private static final String EXPECTED_LOCAL_NAME_SYNONYM = "transform";
   private static final String EXPECTED_NAMESPACE_URI = "http://www.w3.org/1999/XSL/Transform";
 
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
   {
-    return new CommonsHashSet <> (FILE_EXT_XSLT);
+    return new CommonsHashSet <> (FILE_EXT_XSLT, FILE_EXT_XSL);
   }
 
   public boolean isValidContent (@NonNull final String sFileExt,
@@ -77,11 +84,13 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
 
     // Check root element
     final String sLocalName = XMLHelper.getLocalNameOrTagName (aDoc.getDocumentElement ());
-    if (!EXPECTED_LOCAL_NAME.equals (sLocalName))
+    if (!EXPECTED_LOCAL_NAME.equals (sLocalName) && !EXPECTED_LOCAL_NAME_SYNONYM.equals (sLocalName))
     {
       aErrorList.add (SingleError.builderError ()
                                  .errorText ("The root element name for XSLT must be '" +
                                              EXPECTED_LOCAL_NAME +
+                                             "' or '" +
+                                             EXPECTED_LOCAL_NAME_SYNONYM +
                                              "' but is '" +
                                              sLocalName +
                                              "'")

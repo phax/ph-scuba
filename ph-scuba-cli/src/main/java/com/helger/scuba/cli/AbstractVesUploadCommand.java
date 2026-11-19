@@ -80,6 +80,11 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
   @Option (names = "--overwrite", description = "Allow overwriting an existing artefact.")
   boolean m_bOverwrite;
 
+  /** <code>true</code> to only check without uploading. */
+  @Option (names = "--dry-run",
+           description = "Perform all checks, including the hash value and the conflict check, but do not upload.")
+  boolean m_bDryRun;
+
   /**
    * @return The repository file extension of the uploaded artefact, including the leading dot.
    */
@@ -131,8 +136,9 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
   /**
    * Check the file and upload it.
    *
-   * @return {@link ScubaCli#EXIT_OK} if the file was uploaded, {@link ScubaCli#EXIT_FAILURE} if its
-   *         hash value does not match or its content is not valid, and
+   * @return {@link ScubaCli#EXIT_OK} if the file was uploaded (or would be uploaded in dry run
+   *         mode), {@link ScubaCli#EXIT_FAILURE} if its hash value does not match or its content is
+   *         not valid, and
    *         {@link ScubaCli#EXIT_CONFLICT} if the artefact already exists.
    * @throws Exception
    *         On technical errors
@@ -192,6 +198,20 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
       {
         aLog.error ("The file '" + m_aFile.getPath () + "' is not valid - nothing was uploaded");
         return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
+
+      if (m_bDryRun)
+      {
+        aLog.info ("Dry run: '" +
+                   m_aFile.getPath () +
+                   "' would be uploaded as " +
+                   getArtefactName () +
+                   " '" +
+                   aCoordinate.getAsSingleID () +
+                   "' to repository '" +
+                   aRepo.getID () +
+                   "'");
+        return Integer.valueOf (ScubaCli.EXIT_OK);
       }
 
       if (upload (new PhiveUploader (aUploader), aObj).isUnchanged ())

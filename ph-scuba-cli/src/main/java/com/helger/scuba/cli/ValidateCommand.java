@@ -29,7 +29,6 @@ import com.helger.diver.repo.ERepoWritable;
 import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
-import com.helger.io.file.FilenameHelper;
 import com.helger.scuba.validator.UploadContentValidator;
 
 import picocli.CommandLine.Command;
@@ -98,7 +97,13 @@ public final class ValidateCommand implements Callable <Integer>
       int nFailed = 0;
       for (final File aFile : m_aFiles)
       {
-        final String sFileExt = "." + FilenameHelper.getExtension (aFile);
+        final String sFileExt = CliHelper.getFileExt (aFile);
+        if (sFileExt == null)
+        {
+          aLog.error ("The file '" + aFile.getPath () + "' has no file extension, so there is no check for it");
+          nFailed++;
+          continue;
+        }
         if (!aValidator.hasValidatorForExtension (sFileExt))
         {
           aLog.error ("There is no check for the file extension '" + sFileExt + "' of '" + aFile.getPath () + "'");

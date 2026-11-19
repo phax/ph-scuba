@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.Test;
 
 import com.helger.base.io.nonblocking.NonBlockingByteArrayInputStream;
@@ -86,6 +87,88 @@ public final class XsdContentValidatorTest
     assertFalse (VALIDATOR.isValidContent (".xsd",
                                            new NonBlockingByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),
                                            aErrors));
+    assertFalse (aErrors.isEmpty ());
+  }
+
+  private static boolean _isValid (@NonNull final String sXsd, @NonNull final ErrorList aErrors)
+  {
+    return VALIDATOR.isValidContent (".xsd",
+                                     new NonBlockingByteArrayInputStream (sXsd.getBytes (StandardCharsets.UTF_8)),
+                                     aErrors);
+  }
+
+  @Test
+  public void testInternalDoctype ()
+  {
+    // Like UBL-xmldsig-core-schema-2.1.xsd of UBL 2.1
+    final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                        "<!DOCTYPE schema\n" +
+                        " [\n" +
+                        "   <!ATTLIST schema xmlns:ds CDATA #FIXED 'http://www.w3.org/2000/09/xmldsig#'>\n" +
+                        "   <!ENTITY dsig 'http://www.w3.org/2000/09/xmldsig#'>\n" +
+                        "   <!ENTITY % p ''>\n" +
+                        "   <!ENTITY % s ''>\n" +
+                        "  ]>\n" +
+                        "<schema xmlns='http://www.w3.org/2001/XMLSchema' targetNamespace='&dsig;'>\n" +
+                        "  <element name='test' type='string'/>\n" +
+                        "</schema>";
+    final ErrorList aErrors = new ErrorList ();
+    assertTrue (aErrors.toString (), _isValid (sXsd, aErrors));
+    assertTrue (aErrors.toString (), aErrors.isEmpty ());
+  }
+
+  @Test
+  public void testExternalDtdNotLoaded ()
+  {
+    // The file does not exist - loading it would fail
+    final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                        "<!DOCTYPE schema SYSTEM 'file:///does/not/exist/XMLSchema.dtd'>\n" +
+                        "<schema xmlns='http://www.w3.org/2001/XMLSchema'/>";
+    final ErrorList aErrors = new ErrorList ();
+    assertTrue (aErrors.toString (), _isValid (sXsd, aErrors));
+  }
+
+  @Test
+  public void testExternalParameterEntityNotLoaded ()
+  {
+    final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                        "<!DOCTYPE schema [\n" +
+                        "  <!ENTITY % ext SYSTEM 'file:///does/not/exist/ext.dtd'>\n" +
+                        "  %ext;\n" +
+                        "]>\n" +
+                        "<schema xmlns='http://www.w3.org/2001/XMLSchema'/>";
+    final ErrorList aErrors = new ErrorList ();
+    assertTrue (aErrors.toString (), _isValid (sXsd, aErrors));
+  }
+
+  @Test
+  public void testExternalGeneralEntityNotLoaded ()
+  {
+    final String sXsd = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                        "<!DOCTYPE schema [\n" +
+                        "  <!ENTITY ext SYSTEM 'file:///does/not/exist/secret.txt'>\n" +
+                        "]>\n" +
+                        "<schema xmlns='http://www.w3.org/2001/XMLSchema'><annotation><documentation>&ext;</documentation></annotation></schema>";
+    final ErrorList aErrors = new ErrorList ();
+    assertTrue (aErrors.toString (), _isValid (sXsd, aErrors));
+  }
+
+  @Test
+  public void testEntityExpansionLimit ()
+  {
+    // "Billion laughs" - 10^10 expansions
+    final StringBuilder aSB = new StringBuilder ("<?xml version='1.0' encoding='UTF-8'?>\n<!DOCTYPE schema [\n");
+    aSB.append ("  <!ENTITY lol0 'lol'>\n");
+    for (int i = 1; i <= 10; ++i)
+    {
+      aSB.append ("  <!ENTITY lol").append (i).append (" '");
+      for (int j = 0; j < 10; ++j)
+        aSB.append ("&lol").append (i - 1).append (';');
+      aSB.append ("'>\n");
+    }
+    aSB.append ("]>\n<schema xmlns='http://www.w3.org/2001/XMLSchema'><annotation><documentation>&lol10;</documentation></annotation></schema>");
+    final ErrorList aErrors = new ErrorList ();
+    assertFalse (_isValid (aSB.toString (), aErrors));
     assertFalse (aErrors.isEmpty ());
   }
 }

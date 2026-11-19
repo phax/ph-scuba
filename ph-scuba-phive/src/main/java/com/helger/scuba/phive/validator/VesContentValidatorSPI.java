@@ -19,6 +19,7 @@ package com.helger.scuba.phive.validator;
 import java.io.InputStream;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import com.helger.annotation.style.IsSPIImplementation;
 import com.helger.base.string.StringHelper;
@@ -69,6 +70,36 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
   public void initRepoStorage (@NonNull final IRepoStorageWithToc aRepo)
   {
     m_aRepo = aRepo;
+  }
+
+  /**
+   * Create a coordinate with a static version, as needed to look it up in the repository.
+   *
+   * @param sGroupID
+   *        Group ID. May be <code>null</code>.
+   * @param sArtifactID
+   *        Artifact ID. May be <code>null</code>.
+   * @param sVersion
+   *        Version. May be <code>null</code>.
+   * @return <code>null</code> if the values do not form a valid coordinate or if the version is a
+   *         pseudo version.
+   */
+  @Nullable
+  private static DVRCoordinate _createStaticCoordinateOrNull (@Nullable final String sGroupID,
+                                                             @Nullable final String sArtifactID,
+                                                             @Nullable final String sVersion)
+  {
+    final DVRVersion aVersion = DVRVersion.parseOrNull (sVersion);
+    if (aVersion == null || !aVersion.isStaticVersion ())
+      return null;
+    try
+    {
+      return new DVRCoordinate (sGroupID, sArtifactID, aVersion);
+    }
+    catch (final IllegalArgumentException ex)
+    {
+      return null;
+    }
   }
 
   public boolean isValidContent (@NonNull final String sFileExt,
@@ -123,7 +154,8 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
         final ICommonsSet <String> aAllowedIDs = SPDXHelper.getAllSpdxIDsOfName (sName);
         if (aAllowedIDs != null)
         {
-          if (StringHelper.isNotEmpty (sID) && !aAllowedIDs.contains (sID))
+          // SPDX IDs are compared case-insensitively
+          if (StringHelper.isNotEmpty (sID) && !aAllowedIDs.containsAny (x -> x.equalsIgnoreCase (sID)))
           {
             aErrorList.add (SingleError.builderError ()
                                        .errorText ("The license SPDX ID '" +
@@ -177,9 +209,22 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
           else
             aRes = ((VesXsdCatalogItemSystemType) aEntry).getResource ();
 
-          final DVRCoordinate aVESID = new DVRCoordinate (aRes.getGroupId (),
-                                                          aRes.getArtifactId (),
-                                                          DVRVersion.parseOrNull (aRes.getVersion ()));
+          final DVRCoordinate aVESID = _createStaticCoordinateOrNull (aRes.getGroupId (),
+                                                                      aRes.getArtifactId (),
+                                                                      aRes.getVersion ());
+          if (aVESID == null)
+          {
+            aErrorList.add (SingleError.builderError ()
+                                       .errorText ("Catalog entry '" +
+                                                   aRes.getGroupId () +
+                                                   ":" +
+                                                   aRes.getArtifactId () +
+                                                   ":" +
+                                                   aRes.getVersion () +
+                                                   "' is not a valid coordinate with a static version")
+                                       .build ());
+            return false;
+          }
 
           // XSD Catalogue can only reference XSD stuff
           if (!m_aRepo.exists (RepoStorageKeyOfArtefact.of (aVESID, DefaultVESLoaderXSD.FILE_EXT_XSD)))

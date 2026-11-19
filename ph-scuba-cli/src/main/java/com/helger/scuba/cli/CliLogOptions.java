@@ -63,7 +63,7 @@ final class CliLogOptions
                                                aSpec.commandLine ().getErr (),
                                                m_bVerbose,
                                                m_bQuiet);
-    ret.info (ScubaCli.HEADLINE);
+    ret.info (ScubaCli.getHeadline ());
     return ret;
   }
 }

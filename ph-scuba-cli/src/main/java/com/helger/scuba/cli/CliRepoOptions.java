@@ -85,7 +85,7 @@ final class CliRepoOptions
    */
   boolean isRepositorySelected ()
   {
-    return m_aBaseDir != null || m_aConfigFile != null || m_sRepoID != null;
+    return m_aBaseDir != null || m_aConfigFile != null || m_sRepoID != null || m_sTopTocType != null;
   }
 
   @NonNull

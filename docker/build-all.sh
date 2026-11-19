@@ -59,7 +59,7 @@ if [ "$snapshot" = true ]; then
   fi
 
   echo "Building phelger/scuba:$jarversion for the local platform"
-  docker build --pull -t phelger/scuba:$jarversion -t phelger/scuba:latest -f ../ph-scuba-cli/Dockerfile ../ph-scuba-cli
+  docker build --pull -t phelger/scuba:$jarversion -f ../ph-scuba-cli/Dockerfile ../ph-scuba-cli
   echo "Built phelger/scuba:$jarversion - run it with: docker run --rm -v \"\$PWD:/data\" phelger/scuba:$jarversion --version"
   exit 0
 fi

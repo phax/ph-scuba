@@ -58,6 +58,10 @@ public final class UploadContentValidatorTest
     assertTrue (aValidator.hasValidatorForExtension (".xslt"));
     assertTrue (aValidator.hasValidatorForExtension (".zip"));
     assertFalse (aValidator.hasValidatorForExtension (".unknown"));
+    assertTrue (aValidator.hasValidatorForExtension (".xsl"));
+    // Case-insensitive
+    assertTrue (aValidator.hasValidatorForExtension (".XSD"));
+    assertTrue (aValidator.hasValidatorForExtension (".Zip"));
   }
 
   @Test

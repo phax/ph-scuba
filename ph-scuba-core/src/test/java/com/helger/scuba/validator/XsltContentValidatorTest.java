@@ -50,10 +50,30 @@ public final class XsltContentValidatorTest
   }
 
   @Test
+  public void testTransformRootElement ()
+  {
+    // Synonym of stylesheet
+    final String sXslt = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                         "<xsl:transform version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'/>";
+    final ErrorList aErrors = new ErrorList ();
+    assertTrue (VALIDATOR.isValidContent (".xsl",
+                                          new NonBlockingByteArrayInputStream (sXslt.getBytes (StandardCharsets.UTF_8)),
+                                          aErrors));
+    assertTrue (aErrors.isEmpty ());
+  }
+
+  @Test
+  public void testSupportedExtensions ()
+  {
+    assertTrue (VALIDATOR.getSupportedFileExtensions ().contains (".xslt"));
+    assertTrue (VALIDATOR.getSupportedFileExtensions ().contains (".xsl"));
+  }
+
+  @Test
   public void testWrongRootElement ()
   {
     final String sXml = "<?xml version='1.0' encoding='UTF-8'?>\n" +
-                        "<transform xmlns='http://www.w3.org/1999/XSL/Transform'/>";
+                        "<template xmlns='http://www.w3.org/1999/XSL/Transform'/>";
     final ErrorList aErrors = new ErrorList ();
     assertFalse (VALIDATOR.isValidContent (".xslt",
                                            new NonBlockingByteArrayInputStream (sXml.getBytes (StandardCharsets.UTF_8)),

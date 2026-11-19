@@ -33,7 +33,7 @@ ph-scuba extracts and generalizes the upload mechanics so that **any** diver-bas
 This library consists of the following submodules:
 * **`ph-scuba-bom`** - the Bill of Materials (BOM) that contains the versions of all ph-scuba artifacts for use in `<dependencyManagement>`.
 * **`ph-scuba-api`** - contains the generic upload interface (`IScubaUploader`), the content validation SPI (`IUploadContentValidatorSPI`), the validation registry interface (`IUploadContentValidatorRegistry`), and repository exception classes. This module has no implementation dependencies.
-* **`ph-scuba-core`** - contains the main upload pipeline implementation (`ScubaUploader`), the content validator dispatcher (`UploadContentValidator`), uploader settings (`ScubaUploaderSettings`), and built-in content validators for common file types (`.xsd`, `.sch`, `.xslt`, `.zip`).
+* **`ph-scuba-core`** - contains the main upload pipeline implementation (`ScubaUploader`), the content validator dispatcher (`UploadContentValidator`), uploader settings (`ScubaUploaderSettings`), and built-in content validators for common file types (`.xsd`, `.sch`, `.xslt`, `.xsl`, `.zip`).
 * **`ph-scuba-phive`** - contains [phive](https://github.com/phax/phive)-specific content validators for VES (`.ves`) and VES Status (`.status`) files, the phive upload convenience class (`PhiveUploader`) for VES lifecycle management, and the SPDX license validation helper. This module is optional - only needed when uploading phive validation artifacts.
 * **`ph-scuba-cli`** - the command line client to check and upload artefacts, manage the status of VES artefacts and determine their latest versions. It is built as an executable JAR and as the Docker image `phelger/scuba`. See the [Command Line Client](https://github.com/phax/ph-scuba/wiki/Command-Line-Client) wiki page.
 
@@ -50,10 +50,10 @@ The `UploadContentValidator` in `ph-scuba-core` loads all SPI implementations an
 
 | Extension | Validator | What it checks |
 |-----------|-----------|----------------|
-| `.xsd` | `XsdContentValidator` | XML well-formedness, root element `schema` in W3C XSD namespace |
-| `.sch` | `SchContentValidator` | XML well-formedness |
-| `.xslt` | `XsltContentValidator` | XML well-formedness, root element `stylesheet` in XSL Transform namespace |
-| `.zip` | `ZipContentValidator` | ZIP entry integrity + recursive content validation of entries |
+| `.xsd` | `XsdContentValidator` | XML well-formedness, root element `schema` in W3C XSD namespace. Like phive, a DOCTYPE with an internal subset is allowed, but nothing external is loaded |
+| `.sch` | `SchContentValidator` | XML well-formedness, valid Schematron structure |
+| `.xslt`, `.xsl` | `XsltContentValidator` | XML well-formedness, root element `stylesheet` or `transform` in XSL Transform namespace |
+| `.zip` | `ZipContentValidator` | ZIP header, ZIP entry integrity + recursive content validation of entries, with limits for nesting depth, entry count and total uncompressed size |
 
 ### Phive Validators (ph-scuba-phive)
 
@@ -72,8 +72,8 @@ To add validation for a custom file type:
 ### Recursive Validation
 
 The `ZipContentValidator` recursively validates entries inside ZIP archives using the `IUploadContentValidatorRegistry`.
-Error messages from nested validation carry the full context path (e.g., `archive.zip/schemas/my-schema.xsd: The root element ...`).
-Nesting is fully flexible - a ZIP inside a ZIP produces multi-level context paths.
+Error messages from nested validation carry the path inside the archive (e.g., `zip:schemas/my-schema.xsd: The root element ...`).
+A ZIP inside a ZIP is walked as well, with the paths separated by `/` (e.g., `zip:inner.zip/schemas/my-schema.xsd: ...`), up to the configured nesting depth.
 
 ## Uploader Settings
 
@@ -147,7 +147,7 @@ mvn clean install
 ## News and Noteworthy
 
 v1.2.0 - work in progress
-* Requires at least ph-diver 4.4.0
+* Requires at least ph-diver 4.4.0 and ph-commons 12.7.2
 * Added new submodule `ph-scuba-cli` with a command line client based on picocli, including a Docker setup (`phelger/scuba`)
 * Added class `CScubaVersion` in `ph-scuba-api` with the ph-scuba version and build timestamp
 * The command line client prints a headline with product name and version at the start of each command, except in quiet mode, and as header of the help output
@@ -157,6 +157,24 @@ v1.2.0 - work in progress
 * Added `PhiveUploader.setFailOnStatusHashMismatch` to refuse modifying a VES status whose hash value does not match (disabled by default)
 * `PhiveUploader.setVESDeprecated` and `setVESValidityDate` now check the modified status like an uploaded `.status` file before writing it, so a replacement VESID must exist in the repository
 * `PhiveUploader.setVESDeprecated` and `setVESValidityDate` now throw an `IllegalStateException` instead of returning `EChange.UNCHANGED` if the status cannot be serialized, checked or written
+* `PhiveUploader.setVESDeprecated` and `setVESValidityDate` now require the VES to exist in the repository
+* `PhiveUploader.setVESValidityDate` now also checks a single provided date against the other date of the existing status
+* `PhiveUploader.setFailOnStatusHashMismatch (true)` now also refuses a status whose hash value cannot be verified (e.g. missing `.sha256` file)
+* `ScubaUploader` now reads the payload once, so that the checked content is exactly the uploaded content. This also fixes a `NullPointerException` for resources that are not files
+* `ScubaUploader` now throws a `ScubaException` instead of an `IllegalStateException` / `IllegalArgumentException` for invalid content and unsupported file extensions, and an `IOException` if writing fails
+* `ScubaUploader` now refuses resources without a file extension
+* `ScubaUploader.deleteResource` now throws an `IOException` if deleting fails, and `existsResource` adds a missing leading dot of the file extension
+* The input streams passed to content validators are now closed by the caller, as documented in `IUploadContentValidatorSPI`
+* File extensions are now matched case-insensitively; a warning is logged if two content validators register the same file extension
+* The `.zip` content validator now uses `ZipWalker` from ph-commons: it refuses content that is not a ZIP archive and limits the nesting depth (10), the number of entries (100,000) and the total uncompressed size (1 GiB). The limits can be changed with `ZipContentValidator.setSettings (ZipWalkerSettings)`
+* The `.xsd` content validator now accepts a DOCTYPE with an internal subset (e.g. `UBL-xmldsig-core-schema-2.1.xsd` of the UBL 2.1 XSD ZIP), like phive does when loading XSDs. External DTDs and external entities are still never loaded, and the entity expansion is limited
+* The `.sch` content validator now also checks the Schematron structure, not only the well-formedness. Included files (`sch:include`) are not resolved: their content is not checked (a warning is reported) and a Schematron with includes does not need to contain a pattern itself
+* The XSLT content validator now also handles the file extension `.xsl` and the root element `transform`
+* The `.ves` and `.status` content validators now report invalid or pseudo versions of referenced artefacts as errors instead of throwing an exception
+* The `.ves` content validator now compares the SPDX ID with the IDs of the licence name case-insensitively
+* `SPDXHelper.getAllSpdxIDsOfName` now returns a copy
+* The command line client has the new command `versions` to list all versions of an artefact, the option `--dry-run` for `upload`, `ves add` and `ves add-status`, and the command `generate-completion` for a bash/zsh completion script
+* The command line client never logs HTTP headers, so that credentials do not end up in the log
 
 v1.1.1 - 2026-11-15
 * Added new submodule `ph-scuba-bom` as a dedicated Maven BOM.
