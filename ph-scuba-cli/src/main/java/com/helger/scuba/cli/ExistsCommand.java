@@ -22,6 +22,7 @@ import com.helger.base.log.ILogHandler;
 import com.helger.base.string.StringHelper;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
+import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 
 import picocli.CommandLine.Command;
@@ -76,21 +77,24 @@ public final class ExistsCommand implements Callable <Integer>
     final DVRCoordinate aCoordinate = CliHelper.parseStaticCoordinate (m_aSpec, m_sCoordinate);
     final String sFileExt = StringHelper.startsWith (m_sFileExt, '.') ? m_sFileExt : "." + m_sFileExt;
 
-    final IRepoStorageWithToc aRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, false);
-    if (aRepo.exists (RepoStorageKeyOfArtefact.of (aCoordinate, sFileExt)))
+    try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, false))
     {
-      aLog.info ("The artefact '" +
-                 aCoordinate.getAsSingleID () +
-                 "' with file extension '" +
-                 sFileExt +
-                 "' exists");
-      return Integer.valueOf (ScubaCli.EXIT_OK);
+      final IRepoStorageWithToc aRepo = aConfiguredRepo.getRepoStorage ();
+      if (aRepo.exists (RepoStorageKeyOfArtefact.of (aCoordinate, sFileExt)))
+      {
+        aLog.info ("The artefact '" +
+                   aCoordinate.getAsSingleID () +
+                   "' with file extension '" +
+                   sFileExt +
+                   "' exists");
+        return Integer.valueOf (ScubaCli.EXIT_OK);
+      }
+      aLog.error ("The artefact '" +
+                  aCoordinate.getAsSingleID () +
+                  "' with file extension '" +
+                  sFileExt +
+                  "' does not exist");
+      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
     }
-    aLog.error ("The artefact '" +
-                aCoordinate.getAsSingleID () +
-                "' with file extension '" +
-                sFileExt +
-                "' does not exist");
-    return Integer.valueOf (ScubaCli.EXIT_FAILURE);
   }
 }

@@ -32,7 +32,8 @@ import picocli.CommandLine.Option;
 final class CliLogOptions
 {
   /** <code>true</code> to also print debug and trace messages and stack traces. */
-  @Option (names = { "-v", "--verbose" }, description = "Also print debug messages and stack traces.")
+  @Option (names = { "-v", "--verbose" },
+           description = "Also print the info messages of the libraries (content checks, repository access), debug messages and stack traces.")
   boolean m_bVerbose;
 
   /** <code>true</code> to suppress info messages. */

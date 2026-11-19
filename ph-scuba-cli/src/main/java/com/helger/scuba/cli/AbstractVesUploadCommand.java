@@ -30,6 +30,7 @@ import com.helger.base.state.EChange;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.api.version.DVRVersion;
+import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.scuba.api.repo.ScubaException;
 import com.helger.scuba.phive.upload.PhiveUploader;
@@ -162,49 +163,52 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
     final DVRCoordinate aCoordinate = new DVRCoordinate (aParts[0], aParts[1], aVersion);
     final String sFileExt = getFileExt ();
 
-    final IRepoStorageWithToc aRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true);
-    final ScubaUploader aUploader = new ScubaUploader (aRepo,
-                                                       new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite));
-
-    if (aUploader.existsResource (aCoordinate, sFileExt) && !m_bOverwrite)
+    try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true))
     {
-      aLog.error ("The " +
-                  getArtefactName () +
-                  " '" +
-                  aCoordinate.getAsSingleID () +
-                  "' already exists in the repository - use --overwrite to replace it");
-      return Integer.valueOf (ScubaCli.EXIT_CONFLICT);
-    }
+      final IRepoStorageWithToc aRepo = aConfiguredRepo.getRepoStorage ();
+      final ScubaUploader aUploader = new ScubaUploader (aRepo,
+                                                         new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite));
 
-    final ErrorList aErrorList = new ErrorList ();
-    final boolean bValid;
-    try (final InputStream aIS = Files.newInputStream (m_aFile.toPath ()))
-    {
-      bValid = aUploader.getContentValidator ()
-                        .validateContent (aCoordinate.getAsSingleID (), sFileExt, aIS, aErrorList);
-    }
+      if (aUploader.existsResource (aCoordinate, sFileExt) && !m_bOverwrite)
+      {
+        aLog.error ("The " +
+                    getArtefactName () +
+                    " '" +
+                    aCoordinate.getAsSingleID () +
+                    "' already exists in the repository - use --overwrite to replace it");
+        return Integer.valueOf (ScubaCli.EXIT_CONFLICT);
+      }
 
-    CliHelper.logErrors (aLog, aErrorList);
-    if (!bValid)
-    {
-      aLog.error ("The file '" + m_aFile.getPath () + "' is not valid - nothing was uploaded");
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
-    }
+      final ErrorList aErrorList = new ErrorList ();
+      final boolean bValid;
+      try (final InputStream aIS = Files.newInputStream (m_aFile.toPath ()))
+      {
+        bValid = aUploader.getContentValidator ()
+                          .validateContent (aCoordinate.getAsSingleID (), sFileExt, aIS, aErrorList);
+      }
 
-    if (upload (new PhiveUploader (aUploader), aObj).isUnchanged ())
-    {
-      aLog.error ("The " + getArtefactName () + " '" + aCoordinate.getAsSingleID () + "' could not be uploaded");
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      CliHelper.logErrors (aLog, aErrorList);
+      if (!bValid)
+      {
+        aLog.error ("The file '" + m_aFile.getPath () + "' is not valid - nothing was uploaded");
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
+
+      if (upload (new PhiveUploader (aUploader), aObj).isUnchanged ())
+      {
+        aLog.error ("The " + getArtefactName () + " '" + aCoordinate.getAsSingleID () + "' could not be uploaded");
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
+      aLog.info ("Uploaded '" +
+                 m_aFile.getPath () +
+                 "' as " +
+                 getArtefactName () +
+                 " '" +
+                 aCoordinate.getAsSingleID () +
+                 "' to repository '" +
+                 aRepo.getID () +
+                 "'");
+      return Integer.valueOf (ScubaCli.EXIT_OK);
     }
-    aLog.info ("Uploaded '" +
-               m_aFile.getPath () +
-               "' as " +
-               getArtefactName () +
-               " '" +
-               aCoordinate.getAsSingleID () +
-               "' to repository '" +
-               aRepo.getID () +
-               "'");
-    return Integer.valueOf (ScubaCli.EXIT_OK);
   }
 }

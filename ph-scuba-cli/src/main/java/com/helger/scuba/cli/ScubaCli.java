@@ -20,8 +20,12 @@ import java.util.concurrent.Callable;
 
 import org.jspecify.annotations.NonNull;
 
+import com.helger.annotation.style.VisibleForTesting;
+import com.helger.base.enforce.ValueEnforcer;
 import com.helger.base.rt.NonBlockingProperties;
 import com.helger.base.rt.PropertiesHelper;
+import com.helger.config.ConfigFactory;
+import com.helger.config.IConfig;
 import com.helger.io.resource.ClassPathResource;
 
 import picocli.CommandLine;
@@ -31,7 +35,9 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Spec;
 
 /**
- * Command line client of ph-scuba. Each function is a sub command.
+ * Command line client of ph-scuba. Each function is a sub command. The client holds the ph-config
+ * configuration ({@link IConfig}) used to resolve the secrets referenced by the repository
+ * configuration, e.g. the <code>password-key</code> of an HTTP repository.
  *
  * @author Philip Helger
  * @since 1.2.0
@@ -61,6 +67,9 @@ public final class ScubaCli implements Callable <Integer>
   /** Exit code: the artefact already exists in the repository and overwriting is not enabled */
   public static final int EXIT_CONFLICT = 4;
 
+  /** The slf4j-simple system property with the default log level */
+  private static final String SLF4J_SIMPLE_DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
+
   /**
    * Provides the version for <code>--version</code>.
    */
@@ -86,9 +95,28 @@ public final class ScubaCli implements Callable <Integer>
   @Spec
   CommandSpec m_aSpec;
 
-  /** Constructor. Called by {@link #createCommandLine()}. */
-  public ScubaCli ()
-  {}
+  private final IConfig m_aConfig;
+
+  /**
+   * Constructor. Called by {@link #createCommandLine(IConfig)}.
+   *
+   * @param aConfig
+   *        The configuration to resolve secrets from. May not be <code>null</code>.
+   */
+  public ScubaCli (@NonNull final IConfig aConfig)
+  {
+    ValueEnforcer.notNull (aConfig, "Config");
+    m_aConfig = aConfig;
+  }
+
+  /**
+   * @return The configuration to resolve secrets from. Never <code>null</code>.
+   */
+  @NonNull
+  public IConfig getConfig ()
+  {
+    return m_aConfig;
+  }
 
   /**
    * Called when no command is given: print the usage.
@@ -106,19 +134,50 @@ public final class ScubaCli implements Callable <Integer>
    * Create the picocli command line of this client. Used by {@link #main(String[])} and by tests
    * that run the client in-process.
    *
+   * @param aConfig
+   *        The configuration to resolve secrets from. May not be <code>null</code>.
    * @return A new command line for this client, with technical errors mapped to
    *         {@link #EXIT_ERROR}. Never <code>null</code>.
    */
   @NonNull
-  public static CommandLine createCommandLine ()
+  public static CommandLine createCommandLine (@NonNull final IConfig aConfig)
   {
-    final CommandLine ret = new CommandLine (new ScubaCli ());
+    final CommandLine ret = new CommandLine (new ScubaCli (aConfig));
     ret.setExecutionExceptionHandler ( (ex, aCmd, aParseResult) -> {
       aCmd.getErr ().println ("[error] " + ex.getClass ().getSimpleName () + ": " + ex.getMessage ());
+      // The parse result of the (sub) command that failed contains its -v option
+      if (aCmd.getParseResult ().hasMatchedOption ("--verbose"))
+        ex.printStackTrace (aCmd.getErr ());
       aCmd.getErr ().flush ();
       return EXIT_ERROR;
     });
     return ret;
+  }
+
+  /**
+   * Check if verbose output is requested, before the command line is parsed. This is needed,
+   * because the log level of the libraries must be set before the first logger is created.
+   *
+   * @param aArgs
+   *        The command line arguments. May not be <code>null</code>.
+   * @return <code>true</code> if <code>-v</code> or <code>--verbose</code> is contained, also as
+   *         part of combined short options like <code>-qv</code>.
+   */
+  @VisibleForTesting
+  static boolean isVerboseRequested (@NonNull final String [] aArgs)
+  {
+    for (final String sArg : aArgs)
+    {
+      // End of options
+      if ("--".equals (sArg))
+        break;
+      if ("--verbose".equals (sArg))
+        return true;
+      // The short options of all commands are -h, -q, -v and -V
+      if (sArg.matches ("-[hqvV]+") && sArg.indexOf ('v') > 0)
+        return true;
+    }
+    return false;
   }
 
   /**
@@ -129,6 +188,12 @@ public final class ScubaCli implements Callable <Integer>
    */
   public static void main (final String [] aArgs)
   {
-    System.exit (createCommandLine ().execute (aArgs));
+    // In verbose mode also show the info messages of the libraries (content checks, repository
+    // access). Must happen before anything creates a logger; an explicit -D setting wins.
+    if (isVerboseRequested (aArgs) && System.getProperty (SLF4J_SIMPLE_DEFAULT_LOG_LEVEL) == null)
+      System.setProperty (SLF4J_SIMPLE_DEFAULT_LOG_LEVEL, "info");
+
+    // System properties, environment variables and application properties files
+    System.exit (createCommandLine (ConfigFactory.getDefaultConfig ()).execute (aArgs));
   }
 }

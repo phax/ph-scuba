@@ -26,6 +26,7 @@ import com.helger.base.log.ILogHandler;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.ERepoDeletable;
 import com.helger.diver.repo.ERepoWritable;
+import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.io.file.FilenameHelper;
@@ -83,40 +84,44 @@ public final class ValidateCommand implements Callable <Integer>
     for (final File aFile : m_aFiles)
       CliHelper.checkInputFile (m_aSpec, aFile);
 
-    final IRepoStorageWithToc aRepo = m_aRepoOptions.isRepositorySelected () ? m_aRepoOptions.createRepoStorage (m_aSpec,
-                                                                                                                 aLog,
-                                                                                                                 false)
-                                                                             : RepoStorageInMemory.createDefault ("empty",
-                                                                                                                  ERepoWritable.WITHOUT_WRITE,
-                                                                                                                  ERepoDeletable.WITHOUT_DELETE);
-    final UploadContentValidator aValidator = new UploadContentValidator (aRepo);
-
-    int nFailed = 0;
-    for (final File aFile : m_aFiles)
+    try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.isRepositorySelected () ? m_aRepoOptions.createRepoStorage (m_aSpec,
+                                                                                                                                  aLog,
+                                                                                                                                  false)
+                                                                                         : null)
     {
-      final String sFileExt = "." + FilenameHelper.getExtension (aFile);
-      if (!aValidator.hasValidatorForExtension (sFileExt))
-      {
-        aLog.error ("There is no check for the file extension '" + sFileExt + "' of '" + aFile.getPath () + "'");
-        nFailed++;
-        continue;
-      }
+      final IRepoStorageWithToc aRepo = aConfiguredRepo != null ? aConfiguredRepo.getRepoStorage ()
+                                                                : RepoStorageInMemory.createDefault ("empty",
+                                                                                                     ERepoWritable.WITHOUT_WRITE,
+                                                                                                     ERepoDeletable.WITHOUT_DELETE);
+      final UploadContentValidator aValidator = new UploadContentValidator (aRepo);
 
-      final ErrorList aErrorList = new ErrorList ();
-      final boolean bValid;
-      try (final InputStream aIS = Files.newInputStream (aFile.toPath ()))
+      int nFailed = 0;
+      for (final File aFile : m_aFiles)
       {
-        bValid = aValidator.validateContent ("", sFileExt, aIS, aErrorList);
+        final String sFileExt = "." + FilenameHelper.getExtension (aFile);
+        if (!aValidator.hasValidatorForExtension (sFileExt))
+        {
+          aLog.error ("There is no check for the file extension '" + sFileExt + "' of '" + aFile.getPath () + "'");
+          nFailed++;
+          continue;
+        }
+
+        final ErrorList aErrorList = new ErrorList ();
+        final boolean bValid;
+        try (final InputStream aIS = Files.newInputStream (aFile.toPath ()))
+        {
+          bValid = aValidator.validateContent ("", sFileExt, aIS, aErrorList);
+        }
+        CliHelper.logErrors (aLog, aErrorList);
+        if (bValid)
+          aLog.info ("The file '" + aFile.getPath () + "' is valid");
+        else
+        {
+          aLog.error ("The file '" + aFile.getPath () + "' is not valid");
+          nFailed++;
+        }
       }
-      CliHelper.logErrors (aLog, aErrorList);
-      if (bValid)
-        aLog.info ("The file '" + aFile.getPath () + "' is valid");
-      else
-      {
-        aLog.error ("The file '" + aFile.getPath () + "' is not valid");
-        nFailed++;
-      }
+      return Integer.valueOf (nFailed > 0 ? ScubaCli.EXIT_FAILURE : ScubaCli.EXIT_OK);
     }
-    return Integer.valueOf (nFailed > 0 ? ScubaCli.EXIT_FAILURE : ScubaCli.EXIT_OK);
   }
 }

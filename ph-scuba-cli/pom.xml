@@ -53,6 +53,14 @@
       <artifactId>ph-diver-repo-config</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.helger.diver</groupId>
+      <artifactId>ph-diver-repo-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.diver</groupId>
+      <artifactId>ph-diver-repo-s3</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.helger.phive</groupId>
       <artifactId>phive-ves-engine</artifactId>
     </dependency>

@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 
 import com.helger.base.log.ILogHandler;
 import com.helger.diver.api.coord.DVRCoordinate;
+import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.io.file.FilenameHelper;
 import com.helger.io.resource.FileSystemResource;
@@ -104,47 +105,50 @@ public final class UploadCommand implements Callable <Integer>
     if (!CliHelper.checkSha256 (aLog, m_aFile, m_sExpectedSha256))
       return Integer.valueOf (ScubaCli.EXIT_FAILURE);
 
-    final IRepoStorageWithToc aRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true);
-    final ScubaUploader aUploader = new ScubaUploader (aRepo,
-                                                       new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite)
-                                                                                   .setAllowUploadWithUnknownExtension (m_bAllowUnknownExtension));
-
-    final String sFileExt = "." + FilenameHelper.getExtension (m_aFile);
-    if (!aUploader.getContentValidator ().hasValidatorForExtension (sFileExt) && !m_bAllowUnknownExtension)
+    try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true))
     {
-      aLog.error ("There is no check for the file extension '" +
-                  sFileExt +
-                  "' - use --allow-unknown-extension to upload it without checking");
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
-    }
+      final IRepoStorageWithToc aRepo = aConfiguredRepo.getRepoStorage ();
+      final ScubaUploader aUploader = new ScubaUploader (aRepo,
+                                                         new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite)
+                                                                                     .setAllowUploadWithUnknownExtension (m_bAllowUnknownExtension));
 
-    if (aUploader.existsResource (aCoordinate, sFileExt) && !m_bOverwrite)
-    {
-      aLog.error ("The artefact '" +
-                  aCoordinate.getAsSingleID () +
-                  "' with file extension '" +
-                  sFileExt +
-                  "' already exists in the repository - use --overwrite to replace it");
-      return Integer.valueOf (ScubaCli.EXIT_CONFLICT);
-    }
+      final String sFileExt = "." + FilenameHelper.getExtension (m_aFile);
+      if (!aUploader.getContentValidator ().hasValidatorForExtension (sFileExt) && !m_bAllowUnknownExtension)
+      {
+        aLog.error ("There is no check for the file extension '" +
+                    sFileExt +
+                    "' - use --allow-unknown-extension to upload it without checking");
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
 
-    final FileSystemResource aPayload = new FileSystemResource (m_aFile);
-    if (aUploader.isValidResource (aPayload).isInvalid ())
-    {
-      aLog.error ("The file '" + m_aFile.getPath () + "' is not valid - nothing was uploaded");
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
-    }
+      if (aUploader.existsResource (aCoordinate, sFileExt) && !m_bOverwrite)
+      {
+        aLog.error ("The artefact '" +
+                    aCoordinate.getAsSingleID () +
+                    "' with file extension '" +
+                    sFileExt +
+                    "' already exists in the repository - use --overwrite to replace it");
+        return Integer.valueOf (ScubaCli.EXIT_CONFLICT);
+      }
 
-    aUploader.addResource (aCoordinate, aPayload);
-    aLog.info ("Uploaded '" +
-               m_aFile.getPath () +
-               "' as '" +
-               aCoordinate.getAsSingleID () +
-               "' with file extension '" +
-               sFileExt +
-               "' to repository '" +
-               aRepo.getID () +
-               "'");
-    return Integer.valueOf (ScubaCli.EXIT_OK);
+      final FileSystemResource aPayload = new FileSystemResource (m_aFile);
+      if (aUploader.isValidResource (aPayload).isInvalid ())
+      {
+        aLog.error ("The file '" + m_aFile.getPath () + "' is not valid - nothing was uploaded");
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
+
+      aUploader.addResource (aCoordinate, aPayload);
+      aLog.info ("Uploaded '" +
+                 m_aFile.getPath () +
+                 "' as '" +
+                 aCoordinate.getAsSingleID () +
+                 "' with file extension '" +
+                 sFileExt +
+                 "' to repository '" +
+                 aRepo.getID () +
+                 "'");
+      return Integer.valueOf (ScubaCli.EXIT_OK);
+    }
   }
 }

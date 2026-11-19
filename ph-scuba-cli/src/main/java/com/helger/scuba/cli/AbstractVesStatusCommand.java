@@ -25,6 +25,7 @@ import com.helger.base.state.EChange;
 import com.helger.base.string.StringHelper;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
+import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.scuba.phive.upload.PhiveUploader;
@@ -133,26 +134,29 @@ abstract class AbstractVesStatusCommand implements Callable <Integer>
 
     checkOptions ();
 
-    final IRepoStorageWithToc aRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true);
-    if (!existsVES (aRepo, aVESID))
+    try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true))
     {
-      aLog.error ("The VES '" + aVESID.getAsSingleID () + "' does not exist in the repository");
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      final IRepoStorageWithToc aRepo = aConfiguredRepo.getRepoStorage ();
+      if (!existsVES (aRepo, aVESID))
+      {
+        aLog.error ("The VES '" + aVESID.getAsSingleID () + "' does not exist in the repository");
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
+
+      final PhiveUploader aUploader = new PhiveUploader (new ScubaUploader (aRepo)).setAuthor (m_sAuthor.trim ());
+      final EChange eChange = changeStatus (aLog, aRepo, aUploader, aVESID);
+      if (eChange == null)
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+
+      if (eChange.isChanged ())
+        aLog.info ("The VES '" + aVESID.getAsSingleID () + "' was " + getChangeDescription ());
+      else
+        aLog.info ("The VES '" +
+                   aVESID.getAsSingleID () +
+                   "' was already " +
+                   getChangeDescription () +
+                   " - nothing changed");
+      return Integer.valueOf (ScubaCli.EXIT_OK);
     }
-
-    final PhiveUploader aUploader = new PhiveUploader (new ScubaUploader (aRepo)).setAuthor (m_sAuthor.trim ());
-    final EChange eChange = changeStatus (aLog, aRepo, aUploader, aVESID);
-    if (eChange == null)
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
-
-    if (eChange.isChanged ())
-      aLog.info ("The VES '" + aVESID.getAsSingleID () + "' was " + getChangeDescription ());
-    else
-      aLog.info ("The VES '" +
-                 aVESID.getAsSingleID () +
-                 "' was already " +
-                 getChangeDescription () +
-                 " - nothing changed");
-    return Integer.valueOf (ScubaCli.EXIT_OK);
   }
 }

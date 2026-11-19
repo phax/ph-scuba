@@ -20,7 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.helger.scuba.cli.CliRunner.CliResult;
 
@@ -31,6 +37,9 @@ import com.helger.scuba.cli.CliRunner.CliResult;
  */
 public final class ScubaCliTest
 {
+  @Rule
+  public final TemporaryFolder m_aTempFolder = new TemporaryFolder ();
+
   @Test
   public void testNoCommand ()
   {
@@ -46,6 +55,36 @@ public final class ScubaCliTest
     assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
     assertTrue (aResult.out ().startsWith ("ph-scuba "));
     assertFalse (aResult.out (), aResult.out ().contains ("undefined"));
+  }
+
+  @Test
+  public void testIsVerboseRequested ()
+  {
+    assertTrue (ScubaCli.isVerboseRequested (new String [] { "upload", "-v", "a", "b" }));
+    assertTrue (ScubaCli.isVerboseRequested (new String [] { "upload", "--verbose" }));
+    assertTrue (ScubaCli.isVerboseRequested (new String [] { "upload", "-qv" }));
+    assertFalse (ScubaCli.isVerboseRequested (new String [] { "upload", "-V" }));
+    assertFalse (ScubaCli.isVerboseRequested (new String [] { "upload", "--version" }));
+    assertFalse (ScubaCli.isVerboseRequested (new String [] { "ves", "deprecate", "--reason", "very old" }));
+    // After the end of options
+    assertFalse (ScubaCli.isVerboseRequested (new String [] { "validate", "--", "-v" }));
+  }
+
+  @Test
+  public void testStackTraceOnlyInVerboseMode () throws Exception
+  {
+    // An unreadable repository configuration is a technical error
+    final File aConfig = m_aTempFolder.newFile ("repoconfig.xml");
+    Files.writeString (aConfig.toPath (), "not xml", StandardCharsets.UTF_8);
+    final String sConfig = aConfig.getAbsolutePath ();
+
+    CliResult aResult = CliRunner.run ("exists", "--config", sConfig, "--repo", "r", "com.test:mini:1.0", "xsd");
+    assertEquals (ScubaCli.EXIT_ERROR, aResult.exitCode ());
+    assertFalse (aResult.err (), aResult.err ().contains ("\tat "));
+
+    aResult = CliRunner.run ("exists", "-v", "--config", sConfig, "--repo", "r", "com.test:mini:1.0", "xsd");
+    assertEquals (ScubaCli.EXIT_ERROR, aResult.exitCode ());
+    assertTrue (aResult.err (), aResult.err ().contains ("\tat "));
   }
 
   @Test

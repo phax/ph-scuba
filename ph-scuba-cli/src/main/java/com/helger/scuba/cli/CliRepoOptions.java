@@ -23,6 +23,7 @@ import org.jspecify.annotations.NonNull;
 import com.helger.base.log.ILogHandler;
 import com.helger.collection.commons.CommonsArrayList;
 import com.helger.collection.commons.ICommonsList;
+import com.helger.config.IConfig;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.config.ERepoTopTocType;
@@ -31,7 +32,8 @@ import com.helger.diver.repo.config.RepoStorageConfigReader;
 import com.helger.diver.repo.config.RepoStorageDefinition;
 import com.helger.diver.repo.config.RepoStorageFactoryLocalFileSystem;
 import com.helger.diver.repo.config.RepoStorageFactoryRegistry;
-import com.helger.diver.repo.toc.IRepoStorageWithToc;
+import com.helger.diver.repo.http.RepoStorageFactoryHttp;
+import com.helger.diver.repo.s3.RepoStorageFactoryS3;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
@@ -41,7 +43,8 @@ import picocli.CommandLine.ParameterException;
 /**
  * The options to select the repository, shared by all commands. Either <code>--basedir</code> (a
  * local file system repository) or <code>--config</code> together with <code>--repo</code> (a
- * repository of a ph-diver repository configuration file) must be used.
+ * repository of a ph-diver repository configuration file of type <code>localfs</code>,
+ * <code>http</code> or <code>aws-s3</code>) must be used.
  *
  * @author Philip Helger
  * @since 1.2.0
@@ -156,7 +159,34 @@ final class CliRepoOptions
   }
 
   /**
-   * Create the selected repository storage.
+   * @param aConfig
+   *        The configuration to resolve secrets from. May not be <code>null</code>.
+   * @return A new factory registry with all repository types supported by the command line client.
+   */
+  @NonNull
+  static RepoStorageFactoryRegistry createFactoryRegistry (@NonNull final IConfig aConfig)
+  {
+    final RepoStorageFactoryRegistry ret = RepoStorageFactoryRegistry.createDefault ();
+    ret.registerFactory (new RepoStorageFactoryHttp (aConfig));
+    ret.registerFactory (new RepoStorageFactoryS3 ());
+    return ret;
+  }
+
+  /**
+   * @param aSpec
+   *        The command. May not be <code>null</code>.
+   * @return The configuration of the {@link ScubaCli} root command. Never <code>null</code>.
+   */
+  @NonNull
+  private static IConfig _getConfig (@NonNull final CommandSpec aSpec)
+  {
+    if (aSpec.root ().userObject () instanceof final ScubaCli aCli)
+      return aCli.getConfig ();
+    throw new IllegalStateException ("The root command is not a ScubaCli");
+  }
+
+  /**
+   * Create the selected repository storage. The caller must close it.
    *
    * @param aSpec
    *        The command, for usage errors. May not be <code>null</code>.
@@ -165,14 +195,14 @@ final class CliRepoOptions
    *        <code>null</code>.
    * @param bWritable
    *        <code>true</code> if the command writes to the repository.
-   * @return The repository storage. Never <code>null</code>.
+   * @return The configured repository storage. Never <code>null</code>.
    * @throws ParameterException
    *         If the repository options are not valid.
    * @throws IllegalStateException
    *         If the configuration cannot be read or the repository cannot be created.
    */
   @NonNull
-  IRepoStorageWithToc createRepoStorage (@NonNull final CommandSpec aSpec,
+  ConfiguredRepoStorage createRepoStorage (@NonNull final CommandSpec aSpec,
                                          @NonNull final ILogHandler aLog,
                                          final boolean bWritable)
   {
@@ -188,13 +218,16 @@ final class CliRepoOptions
 
     // Only create the selected repository, not all of the configuration
     final ErrorList aErrorList = new ErrorList ();
-    final ICommonsList <ConfiguredRepoStorage> aRepos = new RepoStorageConfig (new CommonsArrayList <> (aDefinition)).createAllRepoStorages (RepoStorageFactoryRegistry.createDefault (),
+    final ICommonsList <ConfiguredRepoStorage> aRepos = new RepoStorageConfig (new CommonsArrayList <> (aDefinition)).createAllRepoStorages (createFactoryRegistry (_getConfig (aSpec)),
                                                                                                                                              aErrorList);
     CliHelper.logErrors (aLog, aErrorList);
     if (aRepos.isEmpty () || aErrorList.containsAtLeastOneError ())
+    {
+      aRepos.forEach (ConfiguredRepoStorage::close);
       throw new IllegalStateException ("Failed to create the repository '" +
                                        aDefinition.getID () +
                                        "' - see the messages above");
-    return aRepos.getFirstOrNull ().getRepoStorage ();
+    }
+    return aRepos.getFirstOrNull ();
   }
 }

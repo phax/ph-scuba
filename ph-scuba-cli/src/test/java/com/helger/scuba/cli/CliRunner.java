@@ -21,6 +21,9 @@ import java.io.StringWriter;
 
 import org.jspecify.annotations.NonNull;
 
+import com.helger.config.ConfigFactory;
+import com.helger.config.IConfig;
+
 import picocli.CommandLine;
 
 /**
@@ -47,14 +50,21 @@ final class CliRunner
   {}
 
   @NonNull
-  static CliResult run (@NonNull final String... aArgs)
+  static CliResult runWithConfig (@NonNull final IConfig aConfig, @NonNull final String... aArgs)
   {
     final StringWriter aOut = new StringWriter ();
     final StringWriter aErr = new StringWriter ();
-    final CommandLine aCmd = ScubaCli.createCommandLine ();
+    final CommandLine aCmd = ScubaCli.createCommandLine (aConfig);
     aCmd.setOut (new PrintWriter (aOut));
     aCmd.setErr (new PrintWriter (aErr));
     final int nExitCode = aCmd.execute (aArgs);
     return new CliResult (nExitCode, aOut.toString (), aErr.toString ());
+  }
+
+  @NonNull
+  static CliResult run (@NonNull final String... aArgs)
+  {
+    // Only system properties and environment variables
+    return runWithConfig (ConfigFactory.getSystemConfig (), aArgs);
   }
 }

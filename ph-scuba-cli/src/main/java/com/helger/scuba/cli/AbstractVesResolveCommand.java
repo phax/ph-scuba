@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import com.helger.base.log.ILogHandler;
 import com.helger.diver.api.coord.DVRCoordinate;
+import com.helger.diver.repo.config.ConfiguredRepoStorage;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.phive.ves.engine.load.VESLoaderPseudoVersionResolver;
 
@@ -91,18 +92,21 @@ abstract class AbstractVesResolveCommand implements Callable <Integer>
     final ILogHandler aLog = m_aLogOptions.createLogHandler (m_aSpec, true);
     final String [] aGA = CliHelper.parseGroupArtifact (m_aSpec, m_sGroupArtifact);
 
-    final IRepoStorageWithToc aRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, false);
-    final DVRCoordinate aVESID = resolve (new VESLoaderPseudoVersionResolver (aRepo), aGA[0], aGA[1]);
-    if (aVESID == null)
+    try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, false))
     {
-      aLog.error ("No version of '" + m_sGroupArtifact + "' matches '" + getPseudoVersionName () + "'");
-      return Integer.valueOf (ScubaCli.EXIT_FAILURE);
-    }
+      final IRepoStorageWithToc aRepo = aConfiguredRepo.getRepoStorage ();
+      final DVRCoordinate aVESID = resolve (new VESLoaderPseudoVersionResolver (aRepo), aGA[0], aGA[1]);
+      if (aVESID == null)
+      {
+        aLog.error ("No version of '" + m_sGroupArtifact + "' matches '" + getPseudoVersionName () + "'");
+        return Integer.valueOf (ScubaCli.EXIT_FAILURE);
+      }
 
-    aLog.debug ("'" + m_sGroupArtifact + "' with '" + getPseudoVersionName () + "' resolves to '" + aVESID.getAsSingleID () + "'");
-    final PrintWriter aOut = m_aSpec.commandLine ().getOut ();
-    aOut.println (aVESID.getAsSingleID ());
-    aOut.flush ();
-    return Integer.valueOf (ScubaCli.EXIT_OK);
+      aLog.debug ("'" + m_sGroupArtifact + "' with '" + getPseudoVersionName () + "' resolves to '" + aVESID.getAsSingleID () + "'");
+      final PrintWriter aOut = m_aSpec.commandLine ().getOut ();
+      aOut.println (aVESID.getAsSingleID ());
+      aOut.flush ();
+      return Integer.valueOf (ScubaCli.EXIT_OK);
+    }
   }
 }

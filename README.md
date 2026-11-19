@@ -13,6 +13,8 @@ A generic, modular Java library for uploading versioned artifacts into [ph-diver
 
 ph-scuba provides a reusable upload pipeline with pluggable content validation, integrity verification, and support for multiple storage backends.
 
+The detailed documentation is in the [ph-scuba wiki](https://github.com/phax/ph-scuba/wiki).
+
 ## Motivation
 
 An internal project demonstrated the value of a structured upload pipeline for validation artifacts.
@@ -33,7 +35,7 @@ This library consists of the following submodules:
 * **`ph-scuba-api`** - contains the generic upload interface (`IScubaUploader`), the content validation SPI (`IUploadContentValidatorSPI`), the validation registry interface (`IUploadContentValidatorRegistry`), and repository exception classes. This module has no implementation dependencies.
 * **`ph-scuba-core`** - contains the main upload pipeline implementation (`ScubaUploader`), the content validator dispatcher (`UploadContentValidator`), uploader settings (`ScubaUploaderSettings`), and built-in content validators for common file types (`.xsd`, `.sch`, `.xslt`, `.zip`).
 * **`ph-scuba-phive`** - contains [phive](https://github.com/phax/phive)-specific content validators for VES (`.ves`) and VES Status (`.status`) files, the phive upload convenience class (`PhiveUploader`) for VES lifecycle management, and the SPDX license validation helper. This module is optional - only needed when uploading phive validation artifacts.
-* **`ph-scuba-cli`** - the command line client to check and upload artefacts, manage the status of VES artefacts and determine their latest versions. It is built as an executable JAR and as the Docker image `phelger/scuba`. See the [Command Line Client](wiki/Command-Line-Client.md) wiki page.
+* **`ph-scuba-cli`** - the command line client to check and upload artefacts, manage the status of VES artefacts and determine their latest versions. It is built as an executable JAR and as the Docker image `phelger/scuba`. See the [Command Line Client](https://github.com/phax/ph-scuba/wiki/Command-Line-Client) wiki page.
 
 The reason why phive-specific support is in a separate module is to avoid pulling in phive dependencies when they are not needed.
 
@@ -145,7 +147,10 @@ mvn clean install
 ## News and Noteworthy
 
 v1.2.0 - work in progress
+* Requires at least ph-diver 4.4.0
 * Added new submodule `ph-scuba-cli` with a command line client based on picocli, including a Docker setup (`phelger/scuba`)
+* The command line client supports the repository types `localfs`, `http` and `aws-s3` from a ph-diver repository configuration.
+  Secrets of HTTP repositories are resolved via ph-config (system properties, environment variables, application properties files)
 * Added `PhiveUploader.setAuthor` to record the real author in the VES status history
 * Added `PhiveUploader.setFailOnStatusHashMismatch` to refuse modifying a VES status whose hash value does not match (disabled by default)
 * `PhiveUploader.setVESDeprecated` and `setVESValidityDate` now check the modified status like an uploaded `.status` file before writing it, so a replacement VESID must exist in the repository
