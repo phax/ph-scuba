@@ -22,11 +22,9 @@ import org.jspecify.annotations.NonNull;
 
 import com.helger.annotation.style.VisibleForTesting;
 import com.helger.base.enforce.ValueEnforcer;
-import com.helger.base.rt.NonBlockingProperties;
-import com.helger.base.rt.PropertiesHelper;
 import com.helger.config.ConfigFactory;
 import com.helger.config.IConfig;
-import com.helger.io.resource.ClassPathResource;
+import com.helger.scuba.api.CScubaVersion;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -67,6 +65,9 @@ public final class ScubaCli implements Callable <Integer>
   /** Exit code: the artefact already exists in the repository and overwriting is not enabled */
   public static final int EXIT_CONFLICT = 4;
 
+  /** The product name and version, printed by <code>--version</code> and at the start of each command */
+  static final String HEADLINE = "ph-scuba " + CScubaVersion.BUILD_VERSION;
+
   /** The slf4j-simple system property with the default log level */
   private static final String SLF4J_SIMPLE_DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
 
@@ -82,12 +83,7 @@ public final class ScubaCli implements Callable <Integer>
     @NonNull
     public String [] getVersion ()
     {
-      String sVersion = null;
-      final NonBlockingProperties p = PropertiesHelper.loadProperties (ClassPathResource.getInputStream ("ph-scuba-cli-version.properties",
-                                                                                                         ScubaCli.class.getClassLoader ()));
-      if (p != null)
-        sVersion = p.get ("version");
-      return new String [] { "ph-scuba " + (sVersion != null ? sVersion : "undefined") };
+      return new String [] { HEADLINE };
     }
   }
 

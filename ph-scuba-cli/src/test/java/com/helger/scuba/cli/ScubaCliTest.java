@@ -58,6 +58,22 @@ public final class ScubaCliTest
   }
 
   @Test
+  public void testHeadline () throws Exception
+  {
+    final String sBaseDir = m_aTempFolder.getRoot ().getAbsolutePath ();
+
+    CliResult aResult = CliRunner.run ("exists", "--basedir", sBaseDir, "com.test:mini:1.0", "xsd");
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+
+    // Not in quiet mode
+    aResult = CliRunner.run ("exists", "-q", "--basedir", sBaseDir, "com.test:mini:1.0", "xsd");
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+    assertFalse (aResult.out (), aResult.out ().contains (ScubaCli.HEADLINE));
+    assertFalse (aResult.err (), aResult.err ().contains (ScubaCli.HEADLINE));
+  }
+
+  @Test
   public void testIsVerboseRequested ()
   {
     assertTrue (ScubaCli.isVerboseRequested (new String [] { "upload", "-v", "a", "b" }));

@@ -45,7 +45,8 @@ final class CliLogOptions
   {}
 
   /**
-   * Create the log handler for a command, based on these options.
+   * Create the log handler for a command, based on these options, and print the headline with the
+   * product name and version as info message (not in quiet mode).
    *
    * @param aSpec
    *        The command whose output streams are used. May not be <code>null</code>.
@@ -57,9 +58,12 @@ final class CliLogOptions
   @NonNull
   ILogHandler createLogHandler (@NonNull final CommandSpec aSpec, final boolean bResultOnStdOut)
   {
-    return new CliLogHandler (bResultOnStdOut ? aSpec.commandLine ().getErr () : aSpec.commandLine ().getOut (),
-                              aSpec.commandLine ().getErr (),
-                              m_bVerbose,
-                              m_bQuiet);
+    final ILogHandler ret = new CliLogHandler (bResultOnStdOut ? aSpec.commandLine ().getErr ()
+                                                               : aSpec.commandLine ().getOut (),
+                                               aSpec.commandLine ().getErr (),
+                                               m_bVerbose,
+                                               m_bQuiet);
+    ret.info (ScubaCli.HEADLINE);
+    return ret;
   }
 }

@@ -63,4 +63,24 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <resources>
+      <!-- The version properties file is filtered -->
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/*.properties</exclude>
+        </excludes>
+      </resource>
+    </resources>
+  </build>
 </project>
