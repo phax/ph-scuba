@@ -209,7 +209,7 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
                    " '" +
                    aCoordinate.getAsSingleID () +
                    "' to repository '" +
-                   aRepo.getID () +
+                   m_aRepoOptions.getRepoDisplayName (aRepo.getID ()) +
                    "'");
         return Integer.valueOf (ScubaCli.EXIT_OK);
       }
@@ -226,7 +226,7 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
                  " '" +
                  aCoordinate.getAsSingleID () +
                  "' to repository '" +
-                 aRepo.getID () +
+                 m_aRepoOptions.getRepoDisplayName (aRepo.getID ()) +
                  "'");
       return Integer.valueOf (ScubaCli.EXIT_OK);
     }

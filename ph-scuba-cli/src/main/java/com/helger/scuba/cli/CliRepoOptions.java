@@ -88,6 +88,18 @@ final class CliRepoOptions
     return m_aBaseDir != null || m_aConfigFile != null || m_sRepoID != null || m_sTopTocType != null;
   }
 
+  /**
+   * @param sRepoID
+   *        The ID of the created repository. May not be <code>null</code>.
+   * @return The name of the selected repository for messages: the absolute base directory for
+   *         <code>--basedir</code>, the repository ID otherwise. Never <code>null</code>.
+   */
+  @NonNull
+  String getRepoDisplayName (@NonNull final String sRepoID)
+  {
+    return m_aBaseDir != null ? m_aBaseDir.getAbsolutePath () : sRepoID;
+  }
+
   @NonNull
   private RepoStorageDefinition _getBaseDirDefinition (@NonNull final CommandLine aCL, final boolean bWritable)
   {
@@ -225,7 +237,7 @@ final class CliRepoOptions
     {
       aRepos.forEach (ConfiguredRepoStorage::close);
       throw new IllegalStateException ("Failed to create the repository '" +
-                                       aDefinition.getID () +
+                                       getRepoDisplayName (aDefinition.getID ()) +
                                        "' - see the messages above");
     }
     return aRepos.getFirstOrNull ();
