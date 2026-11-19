@@ -150,7 +150,7 @@ v1.2.0 - work in progress
 * Requires at least ph-diver 4.4.0
 * Added new submodule `ph-scuba-cli` with a command line client based on picocli, including a Docker setup (`phelger/scuba`)
 * Added class `CScubaVersion` in `ph-scuba-api` with the ph-scuba version and build timestamp
-* The command line client prints a headline with product name and version at the start of each command, except in quiet mode
+* The command line client prints a headline with product name and version at the start of each command, except in quiet mode, and as header of the help output
 * The command line client supports the repository types `localfs`, `http` and `aws-s3` from a ph-diver repository configuration.
   Secrets of HTTP repositories are resolved via ph-config (system properties, environment variables, application properties files)
 * Added `PhiveUploader.setAuthor` to record the real author in the VES status history

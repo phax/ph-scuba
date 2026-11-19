@@ -46,6 +46,24 @@ public final class ScubaCliTest
     final CliResult aResult = CliRunner.run ();
     assertEquals (ScubaCli.EXIT_USAGE, aResult.exitCode ());
     assertTrue (aResult.err ().contains ("upload"));
+    assertTrue (aResult.err (), aResult.err ().startsWith (ScubaCli.HEADLINE));
+  }
+
+  @Test
+  public void testHelpHeader ()
+  {
+    CliResult aResult = CliRunner.run ("--help");
+    assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+
+    // Also for nested sub commands
+    aResult = CliRunner.run ("ves", "add", "--help");
+    assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
+
+    aResult = CliRunner.run ("help", "upload");
+    assertEquals (ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out (), aResult.out ().startsWith (ScubaCli.HEADLINE));
   }
 
   @Test
