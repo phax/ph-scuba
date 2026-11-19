@@ -51,9 +51,6 @@ import picocli.CommandLine.ParameterException;
  */
 final class CliRepoOptions
 {
-  /** The repository ID used for the repository given by <code>--basedir</code>. */
-  static final String BASEDIR_REPO_ID = "basedir";
-
   /** The base directory of a local file system repository. */
   @Option (names = "--basedir",
            paramLabel = "DIR",
@@ -88,18 +85,6 @@ final class CliRepoOptions
     return m_aBaseDir != null || m_aConfigFile != null || m_sRepoID != null || m_sTopTocType != null;
   }
 
-  /**
-   * @param sRepoID
-   *        The ID of the created repository. May not be <code>null</code>.
-   * @return The name of the selected repository for messages: the absolute base directory for
-   *         <code>--basedir</code>, the repository ID otherwise. Never <code>null</code>.
-   */
-  @NonNull
-  String getRepoDisplayName (@NonNull final String sRepoID)
-  {
-    return m_aBaseDir != null ? m_aBaseDir.getAbsolutePath () : sRepoID;
-  }
-
   @NonNull
   private RepoStorageDefinition _getBaseDirDefinition (@NonNull final CommandLine aCL, final boolean bWritable)
   {
@@ -121,15 +106,16 @@ final class CliRepoOptions
                                            "' - use 'none' or 'diver-xml'");
     }
 
+    // The absolute base directory is the repository ID, so that all messages name the repository
+    final String sBaseDir = m_aBaseDir.getAbsolutePath ();
     return RepoStorageDefinition.builder ()
-                                .id (BASEDIR_REPO_ID)
+                                .id (sBaseDir)
                                 .type (RepoStorageFactoryLocalFileSystem.TYPE)
                                 .writable (bWritable)
                                 .deletable (false)
                                 .verifyHash (true)
                                 .topTocType (eTopTocType)
-                                .property (RepoStorageFactoryLocalFileSystem.PROPERTY_BASEDIR,
-                                           m_aBaseDir.getAbsolutePath ())
+                                .property (RepoStorageFactoryLocalFileSystem.PROPERTY_BASEDIR, sBaseDir)
                                 .build ();
   }
 
@@ -237,7 +223,7 @@ final class CliRepoOptions
     {
       aRepos.forEach (ConfiguredRepoStorage::close);
       throw new IllegalStateException ("Failed to create the repository '" +
-                                       getRepoDisplayName (aDefinition.getID ()) +
+                                       aDefinition.getID () +
                                        "' - see the messages above");
     }
     return aRepos.getFirstOrNull ();

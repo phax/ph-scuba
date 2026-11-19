@@ -158,7 +158,7 @@ public final class UploadCommand implements Callable <Integer>
                    "' with file extension '" +
                    sFileExt +
                    "' to repository '" +
-                   m_aRepoOptions.getRepoDisplayName (aRepo.getID ()) +
+                   aRepo.getID () +
                    "'");
         return Integer.valueOf (ScubaCli.EXIT_OK);
       }
@@ -171,7 +171,7 @@ public final class UploadCommand implements Callable <Integer>
                  "' with file extension '" +
                  sFileExt +
                  "' to repository '" +
-                 m_aRepoOptions.getRepoDisplayName (aRepo.getID ()) +
+                 aRepo.getID () +
                  "'");
       return Integer.valueOf (ScubaCli.EXIT_OK);
     }
