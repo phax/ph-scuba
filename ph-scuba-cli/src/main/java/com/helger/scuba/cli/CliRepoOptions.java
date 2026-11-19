@@ -112,7 +112,9 @@ final class CliRepoOptions
                                 .id (sBaseDir)
                                 .type (RepoStorageFactoryLocalFileSystem.TYPE)
                                 .writable (bWritable)
+                                // The client never deletes
                                 .deletable (false)
+                                // Detect modified content on read
                                 .verifyHash (true)
                                 .topTocType (eTopTocType)
                                 .property (RepoStorageFactoryLocalFileSystem.PROPERTY_BASEDIR, sBaseDir)
@@ -178,6 +180,7 @@ final class CliRepoOptions
   @NonNull
   private static IConfig _getConfig (@NonNull final CommandSpec aSpec)
   {
+    // Only the root command holds the configuration; the sub commands are created by picocli
     if (aSpec.root ().userObject () instanceof final ScubaCli aCli)
       return aCli.getConfig ();
     throw new IllegalStateException ("The root command is not a ScubaCli");
@@ -221,6 +224,7 @@ final class CliRepoOptions
     CliHelper.logErrors (aLog, aErrorList);
     if (aRepos.isEmpty () || aErrorList.containsAtLeastOneError ())
     {
+      // Don't leak a repository that was created despite errors
       aRepos.forEach (ConfiguredRepoStorage::close);
       throw new IllegalStateException ("Failed to create the repository '" +
                                        aDefinition.getID () +

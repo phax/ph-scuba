@@ -100,6 +100,7 @@ final class CliLogHandler implements ILogHandler
         t.printStackTrace (aPW);
       }
       else
+        // Don't repeat an exception message that is already part of the text
         if (t.getMessage () != null && sMsg.contains (t.getMessage ()))
           aPW.println (sLine);
         else

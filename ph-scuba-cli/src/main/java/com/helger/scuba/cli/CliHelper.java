@@ -162,6 +162,7 @@ final class CliHelper
   @NonNull
   static String [] parseGroupArtifact (@NonNull final CommandSpec aSpec, @NonNull final String sGroupArtifact)
   {
+    // Split into at most 3 parts, so that additional colons are detected as an error
     final String [] ret = StringHelper.getExplodedArray (':', sGroupArtifact, 3);
     if (ret.length != 2 || StringHelper.isEmpty (ret[0]) || StringHelper.isEmpty (ret[1]))
       throw new ParameterException (aSpec.commandLine (),
@@ -218,6 +219,7 @@ final class CliHelper
       return true;
     }
 
+    // Accept the expected value in upper case as well
     if (!sSha256.equals (sExpectedSha256.trim ().toLowerCase (Locale.ROOT)))
     {
       aLog.error ("The SHA-256 hash value of '" +

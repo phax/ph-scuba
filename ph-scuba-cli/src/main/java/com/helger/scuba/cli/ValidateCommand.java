@@ -88,6 +88,7 @@ public final class ValidateCommand implements Callable <Integer>
                                                                                                                                   false)
                                                                                          : null)
     {
+      // Without a repository, references cannot be resolved against anything
       final IRepoStorageWithToc aRepo = aConfiguredRepo != null ? aConfiguredRepo.getRepoStorage ()
                                                                 : RepoStorageInMemory.createDefault ("empty",
                                                                                                      ERepoWritable.WITHOUT_WRITE,

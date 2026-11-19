@@ -100,10 +100,12 @@ public final class VesStatusContentValidatorSPI implements IUploadContentValidat
                                  @NonNull final ErrorList aErrorList)
   {
     final VESStatus1Marshaller aMarshaller = new VESStatus1Marshaller ();
+    // Avoid logging - the errors are collected in the error list instead
     aMarshaller.readExceptionCallbacks ().removeAll ();
     final VesStatusType aStatus = aMarshaller.setCollectErrors (aErrorList).read (aIS);
     if (aStatus == null)
     {
+      // The marshaller already added the XSD errors
       if (false)
         aErrorList.add (SingleError.builderError ()
                                    .errorText ("Failed to read payload as VES Status - XSD error")

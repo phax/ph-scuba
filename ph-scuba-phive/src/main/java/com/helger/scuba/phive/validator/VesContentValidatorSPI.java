@@ -107,10 +107,12 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
                                  @NonNull final ErrorList aErrorList)
   {
     final VES1Marshaller aMarshaller = new VES1Marshaller ();
+    // Avoid logging - the errors are collected in the error list instead
     aMarshaller.readExceptionCallbacks ().removeAll ();
     final VesType aVes = aMarshaller.setCollectErrors (aErrorList).read (aIS);
     if (aVes == null)
     {
+      // The marshaller already added the XSD errors
       if (false)
         aErrorList.add (SingleError.builderError ().errorText ("Failed to read payload as VES - XSD error").build ());
       return false;
@@ -151,6 +153,7 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
           return false;
         }
 
+        // A license name may map to more than one SPDX ID
         final ICommonsSet <String> aAllowedIDs = SPDXHelper.getAllSpdxIDsOfName (sName);
         if (aAllowedIDs != null)
         {
@@ -180,7 +183,8 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
       }
     }
 
-    // VES loader checks, that any required artefact is present as well
+    // VES loader checks, that any required artefact is present as well. Eager loading resolves the
+    // requirements now, so that a missing one is detected at upload time.
     final ErrorList aVESErrorList = new ErrorList ();
     final LoadedVES aLoadedVES = new VESLoader (m_aRepo).setUseEagerRequirementLoading (true)
                                                         .convertToLoadedVES (ValidationExecutorSetStatus.createValidNow (),

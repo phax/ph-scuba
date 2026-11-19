@@ -140,12 +140,15 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
                                  @NonNull final InputStream aIS,
                                  @NonNull final ErrorList aErrorList) throws IOException
   {
+    // Snapshot of the global settings, so that the walk and the error texts use the same limits
     final ZipWalkerSettings aSettings = getSettings ();
     final IZipWalkerCallback aCallback = new IZipWalkerCallback ()
     {
       @Override
       public boolean isNestedArchive (@NonNull final String sPath, @NonNull final ZipEntry aEntry)
       {
+        // The walker descends into nested ZIPs itself instead of dispatching them to this validator
+        // again, so that its limits apply to the archive as a whole
         return FILE_EXT_ZIP.equals (_getFileExt (sPath));
       }
 
@@ -158,7 +161,8 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
         final String sEntryExt = _getFileExt (sPath);
         if (m_aRegistry != null && m_aRegistry.hasValidatorForExtension (sEntryExt))
         {
-          // Validate the entry recursively with the validator for its extension
+          // Validate the entry recursively with the validator for its extension. An invalid entry
+          // stops the walk.
           LOGGER.debug ("Recursively validating ZIP entry '" + sPath + "'");
           return EContinue.valueOf (m_aRegistry.validateContent ("zip:" + sPath, sEntryExt, aEntryIS, aErrorList));
         }
@@ -171,6 +175,7 @@ public final class ZipContentValidator implements IUploadContentValidatorSPI
     final ZipWalkResult aResult = ZipWalker.walk (aIS, aSettings, aCallback);
     final String sErrorText = _getErrorText (aResult, aSettings);
     if (sErrorText != null)
+      // Prefix with the path of the failing entry, if the walker knows it
       aErrorList.add (SingleError.builderError ()
                                  .errorText (aResult.getEntryPath () == null ? sErrorText
                                                                              : "zip:" +

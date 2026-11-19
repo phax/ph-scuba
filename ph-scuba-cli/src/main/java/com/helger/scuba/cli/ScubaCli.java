@@ -171,6 +171,7 @@ public final class ScubaCli implements Callable <Integer>
   {
     final CommandLine ret = new CommandLine (new ScubaCli (aConfig));
     _setHeaderRecursive (ret);
+    // Usage errors are handled by picocli itself; this only gets exceptions thrown by a command
     ret.setExecutionExceptionHandler ( (ex, aCmd, aParseResult) -> {
       aCmd.getErr ().println ("[error] " + ex.getClass ().getSimpleName () + ": " + ex.getMessage ());
       // The parse result of the (sub) command that failed contains its -v option
@@ -201,7 +202,8 @@ public final class ScubaCli implements Callable <Integer>
         break;
       if ("--verbose".equals (sArg))
         return true;
-      // The short options of all commands are -h, -q, -v and -V
+      // The short options of all commands are -h, -q, -v and -V. They may be combined (e.g. -qv), so
+      // look for a 'v' after the leading dash.
       if (sArg.matches ("-[hqvV]+") && sArg.indexOf ('v') > 0)
         return true;
     }

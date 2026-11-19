@@ -69,6 +69,7 @@ public final class SPDXHelper
       final String sID = eItem.getAttributeValue ("id");
       final String sName = eItem.getAttributeValue ("name");
 
+      // Keys are unified for case-insensitive lookups; the ID sets keep the original spelling
       if (ID_TO_NAME.put (_unify (sID), sName) != null)
         throw new IllegalStateException ("ID '" + sID + "' is already contained");
       if (!NAME_TO_IDS.computeIfAbsent (_unify (sName), k -> new CommonsHashSet <> ()).add (sID))

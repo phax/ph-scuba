@@ -182,7 +182,7 @@ public class PhiveUploader
   {
     ValueEnforcer.notNull (aVes, "VES");
 
-    // Serialize VES Status
+    // Serialize VES
     final ErrorList aXMLErrorList = new ErrorList ();
     final byte [] aStatusBytes = _getUnifiedMarshaller (new VES1Marshaller ()).setCollectErrors (aXMLErrorList)
                                                                               .getAsBytes (aVes);
@@ -359,7 +359,8 @@ public class PhiveUploader
                                        "' is not valid - see log for details");
     }
 
-    // Upload updated version
+    // Upload updated version. Written directly to the repository and not via the ScubaUploader, as
+    // replacing the existing status is intended here, independent of the overwrite setting.
     if (m_aUploader.getRepoStorage ().write (aStatusKey, aContent).isFailure ())
     {
       final String sMsg = "Failed to upload updated status of VESID '" +
@@ -409,6 +410,7 @@ public class PhiveUploader
     }
     else
     {
+      // No status yet - create a new one
       aStatus = new VesStatusType ();
       aStatus.setGroupId (aVESID.getGroupID ());
       aStatus.setArtifactId (aVESID.getArtifactID ());
@@ -416,6 +418,7 @@ public class PhiveUploader
       aStatus.setHistory (new VesStatusHistoryType ());
     }
 
+    // Same timestamp for the status and the history item
     final XMLOffsetDateTime aNow = PDTFactory.getCurrentXMLOffsetDateTimeUTC ();
     aStatus.setStatusLastModified (aNow);
 
@@ -529,6 +532,7 @@ public class PhiveUploader
     }
     else
     {
+      // No status yet - create a new one
       aStatus = new VesStatusType ();
       aStatus.setGroupId (aVESID.getGroupID ());
       aStatus.setArtifactId (aVESID.getArtifactID ());
@@ -536,9 +540,11 @@ public class PhiveUploader
       aStatus.setHistory (new VesStatusHistoryType ());
     }
 
+    // Same timestamp for the status and the history item
     final XMLOffsetDateTime aNow = PDTFactory.getCurrentXMLOffsetDateTimeUTC ();
     aStatus.setStatusLastModified (aNow);
 
+    // Only the provided dates are changed, the other one is kept
     if (aValidFrom != null)
       aStatus.setValidFrom (XMLOffsetDateTime.from (aValidFrom));
     if (aValidTo != null)

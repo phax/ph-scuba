@@ -68,7 +68,8 @@ public final class XsltContentValidator implements IUploadContentValidatorSPI
                                  @NonNull final InputStream aIS,
                                  @NonNull final ErrorList aErrorList)
   {
-    // Check well-formedness
+    // Check well-formedness. Unlike for XSDs, the parser defaults stay in place, so no DOCTYPE is
+    // allowed.
     final DOMReaderSettings aDRS = new DOMReaderSettings ().setErrorHandler (new WrappedCollectingSAXErrorHandler (aErrorList));
     aDRS.exceptionCallbacks ()
         .set (ex -> aErrorList.add (SingleError.builderError ()

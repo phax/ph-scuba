@@ -184,6 +184,7 @@ public class ScubaUploader implements IScubaUploader
   {
     final ErrorList aErrorList = new ErrorList ();
     final boolean bValid;
+    // Opens a new stream on the in-memory content, so that the same bytes can be written afterwards
     try (final InputStream aIS = aContent.getBufferedInputStream ())
     {
       bValid = m_aContentValidator.validateContent (sContextPath, sFileExt, aIS, aErrorList);
@@ -212,6 +213,7 @@ public class ScubaUploader implements IScubaUploader
       return EValidity.valueOf (m_aSettings.isAllowUploadWithUnknownExtension ());
     }
 
+    // Empty context path - top level resource, so no prefix on the error messages
     return EValidity.valueOf (_isValidContent ("", sFileExt, _readPayload (aPayload)));
   }
 

@@ -137,6 +137,7 @@ abstract class AbstractVesStatusCommand implements Callable <Integer>
     try (final ConfiguredRepoStorage aConfiguredRepo = m_aRepoOptions.createRepoStorage (m_aSpec, aLog, true))
     {
       final IRepoStorageWithToc aRepo = aConfiguredRepo.getRepoStorage ();
+      // Checked upfront for a clear message - the PhiveUploader would throw an exception
       if (!existsVES (aRepo, aVESID))
       {
         aLog.error ("The VES '" + aVESID.getAsSingleID () + "' does not exist in the repository");

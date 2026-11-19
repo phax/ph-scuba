@@ -175,6 +175,7 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
       final ScubaUploader aUploader = new ScubaUploader (aRepo,
                                                          new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite));
 
+      // Checked upfront, so that a dry run detects the conflict as well and it gets its own exit code
       if (aUploader.existsResource (aCoordinate, sFileExt) && !m_bOverwrite)
       {
         aLog.error ("The " +
@@ -185,6 +186,7 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
         return Integer.valueOf (ScubaCli.EXIT_CONFLICT);
       }
 
+      // Check the file as it is, also in dry run mode
       final ErrorList aErrorList = new ErrorList ();
       final boolean bValid;
       try (final InputStream aIS = Files.newInputStream (m_aFile.toPath ()))
@@ -214,6 +216,8 @@ abstract class AbstractVesUploadCommand <JAXBTYPE> implements Callable <Integer>
         return Integer.valueOf (ScubaCli.EXIT_OK);
       }
 
+      // The PhiveUploader serialises the read object again, so the stored bytes may differ from the
+      // file (e.g. in the line endings)
       if (upload (new PhiveUploader (aUploader), aObj).isUnchanged ())
       {
         aLog.error ("The " + getArtefactName () + " '" + aCoordinate.getAsSingleID () + "' could not be uploaded");

@@ -124,6 +124,8 @@ public final class UploadCommand implements Callable <Integer>
                                                          new ScubaUploaderSettings ().setAllowOverwriteExisting (m_bOverwrite)
                                                                                      .setAllowUploadWithUnknownExtension (m_bAllowUnknownExtension));
 
+      // The following checks are done upfront, so that a dry run performs them as well and each
+      // failure gets a clear message and its own exit code, instead of an exception of the uploader
       if (!aUploader.getContentValidator ().hasValidatorForExtension (sFileExt) && !m_bAllowUnknownExtension)
       {
         aLog.error ("There is no check for the file extension '" +

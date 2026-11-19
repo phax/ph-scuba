@@ -61,6 +61,7 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
   private IUploadContentValidatorSPI _findValidator (@NonNull final String sFileExt)
   {
     final String sRealFileExt = _unifyFileExt (sFileExt);
+    // First match wins, so the validator loaded first takes precedence
     for (final IUploadContentValidatorSPI aValidator : m_aValidators)
       if (aValidator.getSupportedFileExtensions ().contains (sRealFileExt))
         return aValidator;
@@ -135,6 +136,7 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
 
       // Collect errors in a local list so we can prefix them with context path
       final ErrorList aLocalErrors = new ErrorList ();
+      // SPI validators register lower case extensions only
       final boolean bValid = aValidator.isValidContent (_unifyFileExt (sFileExt), aIS, aLocalErrors);
 
       // Transfer errors with context path prefix
