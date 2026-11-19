@@ -22,9 +22,10 @@ ph-scuba extracts and generalizes the upload mechanics so that **any** diver-bas
 - [Module Structure](Module-Structure.md) - Maven modules and their responsibilities
 - [Upload Workflow](Upload-Workflow.md) - How artifacts flow through the upload pipeline
 - [Configuration](Configuration.md) - Storage backends and uploader configuration
+- [Command Line Client](Command-Line-Client.md) - Uploading and managing VES artefacts from the command line or Docker
 - [Development Guide](Development-Guide.md) - Building, testing, and contributing
 
-Note: ph-scuba is a library-only project. There is no standalone web application module.
+Note: ph-scuba is a library with a command line client (`ph-scuba-cli`). There is no standalone web application module.
 
 ## Related Projects
 

@@ -1,0 +1,86 @@
+/*
+ * Copyright (C) 2026 Philip Helger (www.helger.com)
+ * philip[at]helger[dot]com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.helger.scuba.cli;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
+import com.helger.base.state.EChange;
+import com.helger.phive.ves.engine.load.VESLoader;
+import com.helger.phive.ves.model.v1.VESStatus1Marshaller;
+import com.helger.phive.ves.v10.VesStatusType;
+import com.helger.scuba.api.repo.ScubaException;
+import com.helger.scuba.phive.upload.PhiveUploader;
+
+import picocli.CommandLine.Command;
+
+/**
+ * The command <code>ves add-status</code>: check a VES status file and upload it to the coordinate
+ * contained in it.
+ *
+ * @author Philip Helger
+ * @since 1.2.0
+ */
+@Command (name = "add-status",
+          mixinStandardHelpOptions = true,
+          description = { "Check a VES status file and upload it. The coordinate is taken from the file.",
+                          "To change an existing status, use 'ves deprecate' or 'ves validity'." })
+public final class VesAddStatusCommand extends AbstractVesUploadCommand <VesStatusType>
+{
+  /** Constructor. Called by picocli. */
+  public VesAddStatusCommand ()
+  {}
+
+  @Override
+  @NonNull
+  protected String getFileExt ()
+  {
+    return VESLoader.FILE_EXT_STATUS;
+  }
+
+  @Override
+  @NonNull
+  protected String getArtefactName ()
+  {
+    return "VES status";
+  }
+
+  @Override
+  @Nullable
+  protected VesStatusType readFile (@NonNull final File aFile)
+  {
+    return new VESStatus1Marshaller ().read (aFile);
+  }
+
+  @Override
+  @NonNull
+  protected String [] getCoordinateParts (@NonNull final VesStatusType aObj)
+  {
+    return new String [] { aObj.getGroupId (), aObj.getArtifactId (), aObj.getVersion () };
+  }
+
+  @Override
+  @NonNull
+  protected EChange upload (@NonNull final PhiveUploader aUploader, @NonNull final VesStatusType aObj) throws IOException,
+                                                                                                          ScubaException
+  {
+    return aUploader.addVESStatus (aObj);
+  }
+}

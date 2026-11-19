@@ -33,6 +33,7 @@ This library consists of the following submodules:
 * **`ph-scuba-api`** - contains the generic upload interface (`IScubaUploader`), the content validation SPI (`IUploadContentValidatorSPI`), the validation registry interface (`IUploadContentValidatorRegistry`), and repository exception classes. This module has no implementation dependencies.
 * **`ph-scuba-core`** - contains the main upload pipeline implementation (`ScubaUploader`), the content validator dispatcher (`UploadContentValidator`), uploader settings (`ScubaUploaderSettings`), and built-in content validators for common file types (`.xsd`, `.sch`, `.xslt`, `.zip`).
 * **`ph-scuba-phive`** - contains [phive](https://github.com/phax/phive)-specific content validators for VES (`.ves`) and VES Status (`.status`) files, the phive upload convenience class (`PhiveUploader`) for VES lifecycle management, and the SPDX license validation helper. This module is optional - only needed when uploading phive validation artifacts.
+* **`ph-scuba-cli`** - the command line client to check and upload artefacts, manage the status of VES artefacts and determine their latest versions. It is built as an executable JAR and as the Docker image `phelger/scuba`. See the [Command Line Client](wiki/Command-Line-Client.md) wiki page.
 
 The reason why phive-specific support is in a separate module is to avoid pulling in phive dependencies when they are not needed.
 
@@ -142,6 +143,13 @@ mvn clean install
 | [ph-commons](https://github.com/phax/ph-commons) | Common Java utilities used throughout the ph-* ecosystem |
 
 ## News and Noteworthy
+
+v1.2.0 - work in progress
+* Added new submodule `ph-scuba-cli` with a command line client based on picocli, including a Docker setup (`phelger/scuba`)
+* Added `PhiveUploader.setAuthor` to record the real author in the VES status history
+* Added `PhiveUploader.setFailOnStatusHashMismatch` to refuse modifying a VES status whose hash value does not match (disabled by default)
+* `PhiveUploader.setVESDeprecated` and `setVESValidityDate` now check the modified status like an uploaded `.status` file before writing it, so a replacement VESID must exist in the repository
+* `PhiveUploader.setVESDeprecated` and `setVESValidityDate` now throw an `IllegalStateException` instead of returning `EChange.UNCHANGED` if the status cannot be serialized, checked or written
 
 v1.1.1 - 2026-11-15
 * Added new submodule `ph-scuba-bom` as a dedicated Maven BOM.

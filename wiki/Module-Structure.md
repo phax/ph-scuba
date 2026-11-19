@@ -9,7 +9,8 @@ ph-scuba-parent-pom (parent POM)
 ├── ph-scuba-bom           Bill of Materials for all ph-scuba artifacts
 ├── ph-scuba-api           Generic upload and content validation API (incl. SPI)
 ├── ph-scuba-core          Main business logic (upload pipeline)
-└── ph-scuba-phive         Phive-specific content validators and VES upload logic
+├── ph-scuba-phive         Phive-specific content validators and VES upload logic
+└── ph-scuba-cli           Command line client (executable JAR and Docker image)
 ```
 
 ---
@@ -136,6 +137,9 @@ This module exists as a separate submodule because the VES and VESStatus validat
 - `addVESStatus(VesStatusType)` - marshal and upload VESStatus XML
 - `setVESDeprecated(DVRCoordinate, reason, replacement)` - read/update/write status
 - `setVESValidityDate(DVRCoordinate, validFrom, validTo)` - read/update/write status
+- The modified status of `setVESDeprecated` / `setVESValidityDate` is checked by the `.status` content validator before it is written; failures throw an `IllegalStateException`
+- `setAuthor(String)` - the author recorded in the status history (default `ph-scuba-phive`)
+- `setFailOnStatusHashMismatch(boolean)` - refuse to modify a status whose hash value does not match (default: only warn)
 - UNIX newline normalization via `_getUnifiedMarshaller()` pattern
 
 **Dependencies:**
@@ -144,6 +148,20 @@ This module exists as a separate submodule because the VES and VESStatus validat
 - `phive-ves-model` - for `VES1Marshaller`, `VESStatus1Marshaller`, JAXB types (`VesType`, `VesStatusType`)
 - `phive-ves-engine` - for `VESLoader`, `DefaultVESLoaderXSD`, `DefaultVESLoaderSchematron`
 - `phive-api` - for `IValidationExecutorSetStatus`, `ValidationExecutorSetStatus`
+
+---
+
+### ph-scuba-cli
+
+The command line client, based on picocli. It is built as an executable shaded JAR and as the Docker image `phelger/scuba`. See [Command Line Client](Command-Line-Client.md) for the commands.
+
+It is an application, not a library, so it is not part of `ph-scuba-bom`.
+
+**Dependencies:**
+- `ph-scuba-core` and `ph-scuba-phive`
+- `ph-diver-repo-config` - for selecting the repository via `--config` / `--basedir`
+- `phive-ves-engine` - for `VESLoaderPseudoVersionResolver` (`ves latest*`)
+- `picocli`
 
 ---
 
@@ -156,8 +174,8 @@ ph-diver-api ◄──── ph-scuba-api (defines IUploadContentValidatorSPI)
 ph-diver-repo ◄─── ph-scuba-core (core: loads SPI, built-in .xsd/.sch/.xslt/.zip validators)
 ph-xml ◄───────┘        ▲
                         │
-                  ph-scuba-phive
-                  (SPI: .ves/.status)
+                  ph-scuba-phive ◄──── ph-scuba-cli ───► ph-diver-repo-config
+                  (SPI: .ves/.status)      (picocli)
                         │
                         ▼
               phive-ves-model
