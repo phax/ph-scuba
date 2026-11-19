@@ -17,6 +17,7 @@
 package com.helger.scuba.phive.upload;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.OffsetDateTime;
 
 import org.jspecify.annotations.NonNull;
@@ -24,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.helger.annotation.Nonempty;
 import com.helger.base.enforce.ValueEnforcer;
 import com.helger.base.equals.EqualsHelper;
 import com.helger.base.state.EChange;
@@ -34,6 +36,7 @@ import com.helger.datetime.xml.XMLOffsetDateTime;
 import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.diver.api.version.DVRVersion;
+import com.helger.diver.repo.ERepoHashState;
 import com.helger.diver.repo.IRepoStorageReadItem;
 import com.helger.diver.repo.RepoStorageContentByteArray;
 import com.helger.diver.repo.RepoStorageKey;
@@ -58,11 +61,15 @@ import com.helger.scuba.upload.ScubaUploader;
  */
 public class PhiveUploader
 {
-  /** The author name used in VES status history items. */
+  /** The default author name used in VES status history items. */
   public static final String AUTHOR_SYSTEM = "ph-scuba-phive";
+  /** Default: only warn if the hash value of an existing VES status does not match */
+  public static final boolean DEFAULT_FAIL_ON_STATUS_HASH_MISMATCH = false;
 
   private static final Logger LOGGER = LoggerFactory.getLogger (PhiveUploader.class);
   private final ScubaUploader m_aUploader;
+  private String m_sAuthor = AUTHOR_SYSTEM;
+  private boolean m_bFailOnStatusHashMismatch = DEFAULT_FAIL_ON_STATUS_HASH_MISMATCH;
 
   /**
    * Constructor wrapping a {@link ScubaUploader} for phive-specific upload operations.
@@ -85,6 +92,63 @@ public class PhiveUploader
   public ScubaUploader getUploader ()
   {
     return m_aUploader;
+  }
+
+  /**
+   * @return The author name used in the VES status history items created by this uploader. Never
+   *         <code>null</code>. Defaults to {@link #AUTHOR_SYSTEM}.
+   * @since 1.2.0
+   */
+  @NonNull
+  @Nonempty
+  public final String getAuthor ()
+  {
+    return m_sAuthor;
+  }
+
+  /**
+   * Set the author name used in the VES status history items created by this uploader, so that the
+   * history shows who made a change.
+   *
+   * @param sAuthor
+   *        The author name. May neither be <code>null</code> nor empty.
+   * @return this for chaining
+   * @since 1.2.0
+   */
+  @NonNull
+  public final PhiveUploader setAuthor (@NonNull @Nonempty final String sAuthor)
+  {
+    ValueEnforcer.notEmpty (sAuthor, "Author");
+    m_sAuthor = sAuthor;
+    return this;
+  }
+
+  /**
+   * @return {@code true} if modifying an existing VES status is refused when its hash value does not
+   *         match its content, {@code false} if only a warning is logged. Default is
+   *         {@value #DEFAULT_FAIL_ON_STATUS_HASH_MISMATCH}.
+   * @since 1.2.0
+   */
+  public final boolean isFailOnStatusHashMismatch ()
+  {
+    return m_bFailOnStatusHashMismatch;
+  }
+
+  /**
+   * Set whether modifying an existing VES status is refused when its hash value does not match its
+   * content. Without this, a tampered status would be modified and stored with a new, matching hash
+   * value.
+   *
+   * @param bFail
+   *        {@code true} to refuse, {@code false} to only log a warning.
+   * @return this for chaining
+   * @since 1.2.0
+   */
+  @NonNull
+  public final PhiveUploader setFailOnStatusHashMismatch (final boolean bFail)
+  {
+    m_bFailOnStatusHashMismatch = bFail;
+    return this;
   }
 
   @NonNull
@@ -170,8 +234,112 @@ public class PhiveUploader
   }
 
   /**
+   * Read the existing VES status from the repository.
+   *
+   * @param aStatusKey
+   *        The repository key of the status. May not be <code>null</code>.
+   * @return <code>null</code> if no status exists.
+   * @throws IllegalStateException
+   *         If the existing status cannot be read, or if its hash value does not match and
+   *         {@link #isFailOnStatusHashMismatch()} is enabled.
+   */
+  @Nullable
+  private VesStatusType _readExistingStatus (@NonNull final RepoStorageKey aStatusKey)
+  {
+    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorage ().read (aStatusKey);
+    if (aOldReadStatus == null)
+      return null;
+
+    if (aOldReadStatus.getHashState () == ERepoHashState.VERIFIED_NON_MATCHING)
+    {
+      final String sMsg = "The hash value of the existing status '" +
+                          aStatusKey.getPath () +
+                          "' does not match its content - it may have been tampered with";
+      if (m_bFailOnStatusHashMismatch)
+      {
+        LOGGER.error (sMsg);
+        throw new IllegalStateException (sMsg);
+      }
+      LOGGER.warn (sMsg);
+    }
+
+    final VesStatusType ret = new VESStatus1Marshaller ().read (aOldReadStatus.getContent ().getBufferedInputStream ());
+    if (ret == null)
+      throw new IllegalStateException ("Old status could not be read!");
+    return ret;
+  }
+
+  /**
+   * Serialize the modified VES status, check it with the content validator registered for
+   * {@link VESLoader#FILE_EXT_STATUS} and write it to the repository.
+   *
+   * @param aVESID
+   *        The VESID the status belongs to. May not be <code>null</code>.
+   * @param aStatusKey
+   *        The repository key of the status. May not be <code>null</code>.
+   * @param aStatus
+   *        The status to write. May not be <code>null</code>.
+   * @throws IllegalStateException
+   *         If serializing, checking or writing failed.
+   */
+  private void _writeStatus (@NonNull final DVRCoordinate aVESID,
+                             @NonNull final RepoStorageKey aStatusKey,
+                             @NonNull final VesStatusType aStatus)
+  {
+    // Serialize VES Status
+    final ErrorList aXMLErrorList = new ErrorList ();
+    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
+                                                                                    .getAsBytes (aStatus);
+    if (aStatusBytes == null)
+    {
+      LOGGER.error ("Failed to serialize uploaded status as XML:");
+      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
+      throw new IllegalStateException ("Failed to serialize the status of VESID '" +
+                                       aVESID.getAsSingleID () +
+                                       "' as XML - see log for details");
+    }
+
+    // Check the content like an upload does
+    final RepoStorageContentByteArray aContent = RepoStorageContentByteArray.of (aStatusBytes);
+    final ErrorList aErrorList = new ErrorList ();
+    final boolean bValid;
+    try
+    {
+      bValid = m_aUploader.getContentValidator ()
+                          .validateContent (aVESID.getAsSingleID (),
+                                            VESLoader.FILE_EXT_STATUS,
+                                            aContent.getBufferedInputStream (),
+                                            aErrorList);
+    }
+    catch (final IOException ex)
+    {
+      throw new UncheckedIOException (ex);
+    }
+    if (!bValid)
+    {
+      for (final var aError : aErrorList.getAllErrors ())
+        LOGGER.error (aError.getAsStringLocaleIndepdent ());
+      throw new IllegalStateException ("The updated status of VESID '" +
+                                       aVESID.getAsSingleID () +
+                                       "' is not valid - see log for details");
+    }
+
+    // Upload updated version
+    if (m_aUploader.getRepoStorage ().write (aStatusKey, aContent).isFailure ())
+    {
+      final String sMsg = "Failed to upload updated status of VESID '" +
+                          aVESID.getAsSingleID () +
+                          "' to the repository";
+      LOGGER.error (sMsg);
+      throw new IllegalStateException (sMsg);
+    }
+  }
+
+  /**
    * Mark a VES as deprecated. Reads the existing status (or creates a new one), sets the deprecated
-   * flag and optionally a deprecation reason and replacement VESID, then writes it back.
+   * flag and optionally a deprecation reason and replacement VESID, then writes it back. The
+   * modified status is checked like an uploaded status before it is written, so a replacement VESID
+   * must exist in the repository.
    *
    * @param aVESID
    *        The VESID to deprecate. Must be a static version. May not be <code>null</code>.
@@ -180,7 +348,10 @@ public class PhiveUploader
    * @param aReplacementVESID
    *        Optional replacement VESID. May be <code>null</code>.
    * @return {@link EChange#CHANGED} if the deprecation was applied, {@link EChange#UNCHANGED} if
-   *         already deprecated or write failed.
+   *         already deprecated.
+   * @throws IllegalStateException
+   *         If the existing status cannot be read or the modified status cannot be checked or
+   *         written.
    */
   @NonNull
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID,
@@ -191,14 +362,9 @@ public class PhiveUploader
     ValueEnforcer.isTrue (aVESID.getVersionObj ().isStaticVersion (), "Cannot set a pseudo version as deprecated");
 
     final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
-    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorage ().read (aStatusKey);
-    final VesStatusType aStatus;
-    if (aOldReadStatus != null)
+    VesStatusType aStatus = _readExistingStatus (aStatusKey);
+    if (aStatus != null)
     {
-      aStatus = new VESStatus1Marshaller ().read (aOldReadStatus.getContent ().getBufferedInputStream ());
-      if (aStatus == null)
-        throw new IllegalStateException ("Old status could not be read!");
-
       if (aStatus.isDeprecated () != null && aStatus.isDeprecated ().booleanValue ())
       {
         LOGGER.warn ("VESID '" + aVESID.getAsSingleID () + "' is already deprecated");
@@ -233,27 +399,11 @@ public class PhiveUploader
     // Add history item
     final VesStatusHistoryItemType aHistoryItem = new VesStatusHistoryItemType ();
     aHistoryItem.setChangeDateTime (aNow);
-    aHistoryItem.setAuthor (AUTHOR_SYSTEM);
+    aHistoryItem.setAuthor (m_sAuthor);
     aHistoryItem.setValue ("Marked as deprecated");
     aStatus.getHistory ().addHistoryItem (aHistoryItem);
 
-    // Serialize VES Status
-    final ErrorList aXMLErrorList = new ErrorList ();
-    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
-                                                                                    .getAsBytes (aStatus);
-    if (aStatusBytes == null)
-    {
-      LOGGER.error ("Failed to serialize uploaded status as XML:");
-      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
-      return EChange.UNCHANGED;
-    }
-
-    // Upload updated version
-    if (m_aUploader.getRepoStorage ().write (aStatusKey, RepoStorageContentByteArray.of (aStatusBytes)).isFailure ())
-    {
-      LOGGER.error ("Failed to upload updated status to repository");
-      return EChange.UNCHANGED;
-    }
+    _writeStatus (aVESID, aStatusKey, aStatus);
 
     return EChange.CHANGED;
   }
@@ -266,7 +416,9 @@ public class PhiveUploader
    * @param sDeprecationReason
    *        Optional deprecation reason. May be <code>null</code>.
    * @return {@link EChange#CHANGED} if the deprecation was applied, {@link EChange#UNCHANGED} if
-   *         already deprecated or write failed.
+   *         already deprecated.
+   * @throws IllegalStateException
+   *         If the existing status cannot be read or the modified status cannot be written.
    */
   @NonNull
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID, @Nullable final String sDeprecationReason)
@@ -282,7 +434,8 @@ public class PhiveUploader
 
   /**
    * Set the validity dates of a VES. Reads the existing status (or creates a new one), updates the
-   * validFrom/validTo dates, then writes it back.
+   * validFrom/validTo dates, then writes it back. The modified status is checked like an uploaded
+   * status before it is written.
    *
    * @param aVESID
    *        The VESID to update. Must be a static version. May not be <code>null</code>.
@@ -293,7 +446,10 @@ public class PhiveUploader
    *        The validity end date. May be <code>null</code> but at least one of validFrom/validTo
    *        must be set.
    * @return {@link EChange#CHANGED} if the dates were updated, {@link EChange#UNCHANGED} if
-   *         unchanged or write failed.
+   *         unchanged.
+   * @throws IllegalStateException
+   *         If the existing status cannot be read or the modified status cannot be checked or
+   *         written.
    */
   @NonNull
   public EChange setVESValidityDate (@NonNull final DVRCoordinate aVESID,
@@ -307,14 +463,9 @@ public class PhiveUploader
       ValueEnforcer.isTrue (aValidFrom.compareTo (aValidTo) <= 0, "ValidFrom must not be after ValidTo");
 
     final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
-    final IRepoStorageReadItem aOldReadStatus = m_aUploader.getRepoStorage ().read (aStatusKey);
-    final VesStatusType aStatus;
-    if (aOldReadStatus != null)
+    VesStatusType aStatus = _readExistingStatus (aStatusKey);
+    if (aStatus != null)
     {
-      aStatus = new VESStatus1Marshaller ().read (aOldReadStatus.getContent ().getBufferedInputStream ());
-      if (aStatus == null)
-        throw new IllegalStateException ("Old status could not be read!");
-
       final boolean bSameValidFrom = EqualsHelper.equals (aValidFrom, _toODT (aStatus.getValidFrom ()));
       final boolean bSameValidTo = EqualsHelper.equals (aValidTo, _toODT (aStatus.getValidTo ()));
       if (bSameValidFrom && bSameValidTo)
@@ -343,27 +494,11 @@ public class PhiveUploader
     // Add history item
     final VesStatusHistoryItemType aHistoryItem = new VesStatusHistoryItemType ();
     aHistoryItem.setChangeDateTime (aNow);
-    aHistoryItem.setAuthor (AUTHOR_SYSTEM);
+    aHistoryItem.setAuthor (m_sAuthor);
     aHistoryItem.setValue ("Updated validity dates");
     aStatus.getHistory ().addHistoryItem (aHistoryItem);
 
-    // Serialize VES Status
-    final ErrorList aXMLErrorList = new ErrorList ();
-    final byte [] aStatusBytes = _getUnifiedMarshaller (new VESStatus1Marshaller ()).setCollectErrors (aXMLErrorList)
-                                                                                    .getAsBytes (aStatus);
-    if (aStatusBytes == null)
-    {
-      LOGGER.error ("Failed to serialize uploaded status as XML:");
-      aXMLErrorList.forEach (x -> LOGGER.error ("  " + x.getAsStringLocaleIndepdent ()));
-      return EChange.UNCHANGED;
-    }
-
-    // Upload updated version
-    if (m_aUploader.getRepoStorage ().write (aStatusKey, RepoStorageContentByteArray.of (aStatusBytes)).isFailure ())
-    {
-      LOGGER.error ("Failed to upload updated status to repository");
-      return EChange.UNCHANGED;
-    }
+    _writeStatus (aVESID, aStatusKey, aStatus);
 
     return EChange.CHANGED;
   }
