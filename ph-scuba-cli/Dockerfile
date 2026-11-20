@@ -31,4 +31,5 @@ COPY target/ph-scuba-cli-*-shaded.jar /opt/ph-scuba/ph-scuba-cli.jar
 # Mount the files and the repository to work on here, e.g. "-v $PWD:/data"
 WORKDIR /data
 
-ENTRYPOINT ["java", "-jar", "/opt/ph-scuba/ph-scuba-cli.jar"]
+# Disable the HotSpot Base64 intrinsic as mitigation for CVE-2026-114938 ("Java2Shell")
+ENTRYPOINT ["java", "-XX:-UseBASE64Intrinsics", "-jar", "/opt/ph-scuba/ph-scuba-cli.jar"]

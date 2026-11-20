@@ -147,6 +147,7 @@ mvn clean install
 ## News and Noteworthy
 
 v1.2.0 - work in progress
+* **Security: the Docker image `phelger/scuba` disables the HotSpot Base64 intrinsic (`-XX:-UseBASE64Intrinsics`) as mitigation for CVE-2026-114938 ("Java2Shell").**
 * Requires at least ph-diver 4.4.0 and ph-commons 12.7.2
 * Added new submodule `ph-scuba-cli` with a command line client based on picocli, including a Docker setup (`phelger/scuba`)
 * Added class `CScubaVersion` in `ph-scuba-api` with the ph-scuba version and build timestamp
