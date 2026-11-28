@@ -27,7 +27,7 @@
   </parent>
   <groupId>com.helger.scuba</groupId>
   <artifactId>ph-scuba-bom</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>ph-scuba-bom</name>
   <description>Bill of Materials for all ph-scuba artifacts</description>
@@ -71,8 +71,4 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <scm>
-    <tag>ph-scuba-parent-pom-1.2.0</tag>
-  </scm>
 </project>
