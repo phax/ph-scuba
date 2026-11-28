@@ -64,7 +64,7 @@
 
   <properties>
     <ph-commons.version>12.9.0</ph-commons.version>
-    <ph-web.version>11.5.1</ph-web.version>
+    <ph-web.version>11.5.2</ph-web.version>
     <ph-diver.version>4.4.0</ph-diver.version>
     <phive.version>12.4.0-SNAPSHOT</phive.version>
     <ph-schematron.version>10.3.4-SNAPSHOT</ph-schematron.version>
