@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -47,6 +48,7 @@ import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.diver.repo.impl.RepoStorageInMemory;
 import com.helger.diver.repo.impl.RepoStorageLocalFileSystem;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
+import com.helger.phive.ves.engine.load.IVESRequirementResolver;
 import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.model.v1.VESStatus1Marshaller;
 import com.helger.phive.ves.v10.VesResourceType;
@@ -55,6 +57,7 @@ import com.helger.phive.ves.v10.VesStatusHistoryType;
 import com.helger.phive.ves.v10.VesStatusType;
 import com.helger.phive.ves.v10.VesType;
 import com.helger.phive.ves.v10.VesXsdType;
+import com.helger.scuba.phive.validator.VesContentValidatorSPI;
 import com.helger.scuba.upload.ScubaUploader;
 import com.helger.scuba.upload.ScubaUploaderSettings;
 
@@ -447,6 +450,91 @@ public final class PhiveUploaderTest
     assertTrue (aStatus.isDeprecated ().booleanValue ());
     // Should have 2 history items: one from setVESValidityDate, one from setVESDeprecated
     assertEquals (2, aStatus.getHistory ().getHistoryItem ().size ());
+  }
+
+  @Test
+  public void testSetVESNotDeprecated ()
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+    final DVRCoordinate aCoord = _createCoord ();
+    _writeDummyVES (aRepo, aCoord);
+    final DVRCoordinate aReplacement = new DVRCoordinate ("com.test", "myves", DVRVersion.parseOrNull ("2.0"));
+    _writeDummyVES (aRepo, aReplacement);
+
+    // No status yet - nothing to revert
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.setVESNotDeprecated (aCoord));
+    assertNull (aRepo.read (RepoStorageKeyOfArtefact.of (aCoord, VESLoader.FILE_EXT_STATUS)));
+
+    assertEquals (EChange.CHANGED, aPhiveUploader.setVESDeprecated (aCoord, "Superseded", aReplacement));
+
+    aPhiveUploader.setAuthor ("Jane Doe");
+    assertEquals (EChange.CHANGED, aPhiveUploader.setVESNotDeprecated (aCoord));
+
+    final VesStatusType aStatus = _readStatus (aRepo, aCoord);
+    assertFalse (aStatus.isDeprecated ().booleanValue ());
+    assertNull (aStatus.getDeprecationReason ());
+    assertNull (aStatus.getReplacement ());
+    assertEquals (2, aStatus.getHistory ().getHistoryItem ().size ());
+    final VesStatusHistoryItemType aLastItem = aStatus.getHistory ().getHistoryItem ().get (1);
+    assertEquals ("Jane Doe", aLastItem.getAuthor ());
+    assertEquals ("Deprecation reverted", aLastItem.getValue ());
+    assertEquals (aStatus.getStatusLastModified (), aLastItem.getChangeDateTime ());
+
+    // Already reverted
+    assertEquals (EChange.UNCHANGED, aPhiveUploader.setVESNotDeprecated (aCoord));
+    assertEquals (2, _readStatus (aRepo, aCoord).getHistory ().getHistoryItem ().size ());
+
+    // Can be deprecated again
+    assertEquals (EChange.CHANGED, aPhiveUploader.setVESDeprecated (aCoord, "End of life"));
+    assertTrue (_readStatus (aRepo, aCoord).isDeprecated ().booleanValue ());
+  }
+
+  @Test
+  public void testSetRequirementResolver ()
+  {
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (_createRepo ());
+    final VesContentValidatorSPI aValidator = aPhiveUploader.getUploader ()
+                                                            .getContentValidator ()
+                                                            .getValidatorOfClass (VesContentValidatorSPI.class);
+    assertNotNull (aValidator);
+    assertNull (aValidator.getRequirementResolver ());
+
+    final IVESRequirementResolver aResolver = (aRequiredVES, aErrorList) -> null;
+    assertSame (aPhiveUploader, aPhiveUploader.setRequirementResolver (aResolver));
+    assertSame (aResolver, aValidator.getRequirementResolver ());
+
+    aPhiveUploader.setRequirementResolver (null);
+    assertNull (aValidator.getRequirementResolver ());
+  }
+
+  @Test
+  public void testSetVESNotDeprecatedPreconditions ()
+  {
+    final IRepoStorageWithToc aRepo = _createRepo ();
+    final PhiveUploader aPhiveUploader = _createPhiveUploader (aRepo);
+
+    // VES does not exist
+    try
+    {
+      aPhiveUploader.setVESNotDeprecated (_createCoord ());
+      fail ();
+    }
+    catch (final IllegalStateException ex)
+    {
+      // expected
+    }
+
+    // Pseudo version
+    try
+    {
+      aPhiveUploader.setVESNotDeprecated (new DVRCoordinate ("com.test", "myves", DVRVersion.parseOrNull ("latest")));
+      fail ();
+    }
+    catch (final IllegalArgumentException ex)
+    {
+      // expected
+    }
   }
 
   // -- setVESValidityDate tests --

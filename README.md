@@ -176,6 +176,10 @@ v1.2.0 - work in progress
 * `SPDXHelper.getAllSpdxIDsOfName` now returns a copy
 * The command line client has the new command `versions` to list all versions of an artefact, the option `--dry-run` for `upload`, `ves add` and `ves add-status`, and the command `generate-completion` for a bash/zsh completion script
 * The command line client never logs HTTP headers, so that credentials do not end up in the log
+* Requires phive 12.4.0 (for the requirement resolver)
+* Added `PhiveUploader.setVESNotDeprecated` and the command line command `ves undeprecate` to revert a deprecation. The deprecation reason and the replacement are removed. See [issue #2](https://github.com/phax/ph-scuba/issues/2)
+* Added `VesContentValidatorSPI.setRequirementResolver` (and the shortcut `PhiveUploader.setRequirementResolver`): a `requires` or `partialRequires` of an uploaded VES that is not in the target repository can be resolved by the caller, e.g. to a rule set built into the application. By default such a requirement is still refused; the command line client keeps the default. See [issue #3](https://github.com/phax/ph-scuba/issues/3)
+* Added `UploadContentValidator.getValidatorOfClass` to access a loaded content validator, e.g. to configure it
 
 v1.1.1 - 2026-11-15
 * Added new submodule `ph-scuba-bom` as a dedicated Maven BOM.

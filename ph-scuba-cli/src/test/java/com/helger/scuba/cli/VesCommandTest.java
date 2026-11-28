@@ -17,7 +17,9 @@
 package com.helger.scuba.cli;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -213,6 +215,53 @@ public final class VesCommandTest
     aResult = CliRunner.run ("ves", "deprecate", "--basedir", m_sBaseDir, "--author", "Jane Doe", sVESID);
     assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
     assertTrue (aResult.out ().contains ("already"));
+  }
+
+  @Test
+  public void testUndeprecate () throws Exception
+  {
+    final String sVESID = _addVes ("1.0");
+    final String sReplacement = _addVes ("2.0");
+
+    // Author is required
+    assertEquals (ScubaCli.EXIT_USAGE,
+                  CliRunner.run ("ves", "undeprecate", "--basedir", m_sBaseDir, sVESID).exitCode ());
+
+    // VES does not exist
+    CliResult aResult = CliRunner.run ("ves",
+                                       "undeprecate",
+                                       "--basedir",
+                                       m_sBaseDir,
+                                       "--author",
+                                       "Jane Doe",
+                                       "com.test:other:1.0");
+    assertEquals (ScubaCli.EXIT_FAILURE, aResult.exitCode ());
+
+    // Not deprecated
+    aResult = CliRunner.run ("ves", "undeprecate", "--basedir", m_sBaseDir, "--author", "Jane Doe", sVESID);
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    assertTrue (aResult.out ().contains ("already"));
+
+    aResult = CliRunner.run ("ves",
+                             "deprecate",
+                             "--basedir",
+                             m_sBaseDir,
+                             "--author",
+                             "Jane Doe",
+                             "--reason",
+                             "Superseded",
+                             "--replacement",
+                             sReplacement,
+                             sVESID);
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+
+    aResult = CliRunner.run ("ves", "undeprecate", "--basedir", m_sBaseDir, "--author", "John Doe", sVESID);
+    assertEquals (aResult.err (), ScubaCli.EXIT_OK, aResult.exitCode ());
+    final VesStatusType aStatus = _readStatus (sVESID);
+    assertFalse (aStatus.isDeprecated ().booleanValue ());
+    assertNull (aStatus.getDeprecationReason ());
+    assertNull (aStatus.getReplacement ());
+    assertEquals ("John Doe", aStatus.getHistory ().getHistoryItem ().get (1).getAuthor ());
   }
 
   @Test

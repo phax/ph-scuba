@@ -43,6 +43,7 @@ import com.helger.diver.repo.RepoStorageContentByteArray;
 import com.helger.diver.repo.RepoStorageKey;
 import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.jaxb.GenericJAXBMarshaller;
+import com.helger.phive.ves.engine.load.IVESRequirementResolver;
 import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.model.v1.VES1Marshaller;
 import com.helger.phive.ves.model.v1.VESStatus1Marshaller;
@@ -52,6 +53,7 @@ import com.helger.phive.ves.v10.VesStatusReplacementType;
 import com.helger.phive.ves.v10.VesStatusType;
 import com.helger.phive.ves.v10.VesType;
 import com.helger.scuba.api.repo.ScubaException;
+import com.helger.scuba.phive.validator.VesContentValidatorSPI;
 import com.helger.scuba.upload.ScubaUploader;
 
 /**
@@ -153,6 +155,31 @@ public class PhiveUploader
   public final PhiveUploader setFailOnStatusHashMismatch (final boolean bFail)
   {
     m_bFailOnStatusHashMismatch = bFail;
+    return this;
+  }
+
+  /**
+   * Set the resolver for requirements of an uploaded VES that are not contained in the repository.
+   * It is set on the {@link VesContentValidatorSPI} of the content validator of the underlying
+   * {@link ScubaUploader}, so it applies to all uploads of that uploader.
+   *
+   * @param aRequirementResolver
+   *        The resolver to use. May be <code>null</code> to only resolve requirements from the
+   *        repository, which is the default.
+   * @return this for chaining
+   * @throws IllegalStateException
+   *         If no {@link VesContentValidatorSPI} was loaded.
+   * @see VesContentValidatorSPI#setRequirementResolver(IVESRequirementResolver)
+   * @since 1.2.0
+   */
+  @NonNull
+  public final PhiveUploader setRequirementResolver (@Nullable final IVESRequirementResolver aRequirementResolver)
+  {
+    final VesContentValidatorSPI aValidator = m_aUploader.getContentValidator ()
+                                                         .getValidatorOfClass (VesContentValidatorSPI.class);
+    if (aValidator == null)
+      throw new IllegalStateException ("No VES content validator was loaded");
+    aValidator.setRequirementResolver (aRequirementResolver);
     return this;
   }
 
@@ -464,6 +491,59 @@ public class PhiveUploader
   public EChange setVESDeprecated (@NonNull final DVRCoordinate aVESID, @Nullable final String sDeprecationReason)
   {
     return setVESDeprecated (aVESID, sDeprecationReason, (DVRCoordinate) null);
+  }
+
+  /**
+   * Revert the deprecation of a VES. Reads the existing status, clears the deprecated flag, the
+   * deprecation reason and the replacement VESID, then writes it back. The modified status is
+   * checked like an uploaded status before it is written. The VES must exist in the repository.
+   *
+   * @param aVESID
+   *        The VESID whose deprecation is reverted. Must be a static version. May not be
+   *        <code>null</code>.
+   * @return {@link EChange#CHANGED} if the deprecation was reverted, {@link EChange#UNCHANGED} if
+   *         the VES is not deprecated (including the case that no status exists).
+   * @throws IllegalStateException
+   *         If the VES does not exist, the existing status cannot be read or the modified status
+   *         cannot be checked or written.
+   * @since 1.2.0
+   */
+  @NonNull
+  public EChange setVESNotDeprecated (@NonNull final DVRCoordinate aVESID)
+  {
+    ValueEnforcer.notNull (aVESID, "VESID");
+    ValueEnforcer.isTrue (aVESID.getVersionObj ().isStaticVersion (),
+                          "Cannot revert the deprecation of a pseudo version");
+    _checkVESExists (aVESID);
+
+    final RepoStorageKey aStatusKey = RepoStorageKeyOfArtefact.of (aVESID, VESLoader.FILE_EXT_STATUS);
+    final VesStatusType aStatus = _readExistingStatus (aStatusKey);
+    if (aStatus == null || aStatus.isDeprecated () == null || !aStatus.isDeprecated ().booleanValue ())
+    {
+      LOGGER.warn ("VESID '" + aVESID.getAsSingleID () + "' is not deprecated");
+      return EChange.UNCHANGED;
+    }
+
+    // Same timestamp for the status and the history item
+    final XMLOffsetDateTime aNow = PDTFactory.getCurrentXMLOffsetDateTimeUTC ();
+    aStatus.setStatusLastModified (aNow);
+
+    // A deprecation reason is only allowed for a deprecated VES, and a replacement makes no sense
+    // without a deprecation
+    aStatus.setDeprecated (Boolean.FALSE);
+    aStatus.setDeprecationReason (null);
+    aStatus.setReplacement (null);
+
+    // Add history item
+    final VesStatusHistoryItemType aHistoryItem = new VesStatusHistoryItemType ();
+    aHistoryItem.setChangeDateTime (aNow);
+    aHistoryItem.setAuthor (m_sAuthor);
+    aHistoryItem.setValue ("Deprecation reverted");
+    aStatus.getHistory ().addHistoryItem (aHistoryItem);
+
+    _writeStatus (aVESID, aStatusKey, aStatus);
+
+    return EChange.CHANGED;
   }
 
   @Nullable

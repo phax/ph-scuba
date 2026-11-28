@@ -33,6 +33,7 @@ import com.helger.diver.repo.RepoStorageKeyOfArtefact;
 import com.helger.diver.repo.toc.IRepoStorageWithToc;
 import com.helger.phive.api.executorset.status.ValidationExecutorSetStatus;
 import com.helger.phive.ves.engine.load.DefaultVESLoaderXSD;
+import com.helger.phive.ves.engine.load.IVESRequirementResolver;
 import com.helger.phive.ves.engine.load.LoadedVES;
 import com.helger.phive.ves.engine.load.VESLoader;
 import com.helger.phive.ves.engine.load.VESLoader.VESLoaderStatus;
@@ -59,6 +60,7 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
   {}
 
   private IRepoStorageWithToc m_aRepo;
+  private volatile IVESRequirementResolver m_aRequirementResolver;
 
   @NonNull
   public ICommonsSet <String> getSupportedFileExtensions ()
@@ -70,6 +72,37 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
   public void initRepoStorage (@NonNull final IRepoStorageWithToc aRepo)
   {
     m_aRepo = aRepo;
+  }
+
+  /**
+   * @return The resolver for requirements that are not contained in the repository. May be
+   *         <code>null</code>, which is the default.
+   * @since 1.2.0
+   */
+  @Nullable
+  public IVESRequirementResolver getRequirementResolver ()
+  {
+    return m_aRequirementResolver;
+  }
+
+  /**
+   * Set the resolver for <code>requires</code> and <code>partialRequires</code> of an uploaded VES
+   * that are not contained in the target repository, e.g. rule sets built into the application that
+   * executes the VES. It is passed to {@link VESLoader#setRequirementResolver(IVESRequirementResolver)}
+   * and only called if the repository contains no VES for the required VESID. Without a resolver
+   * (the default), such a requirement is refused.
+   *
+   * @param aRequirementResolver
+   *        The resolver to use. May be <code>null</code> to only resolve requirements from the
+   *        repository.
+   * @return this for chaining
+   * @since 1.2.0
+   */
+  @NonNull
+  public VesContentValidatorSPI setRequirementResolver (@Nullable final IVESRequirementResolver aRequirementResolver)
+  {
+    m_aRequirementResolver = aRequirementResolver;
+    return this;
   }
 
   /**
@@ -184,9 +217,11 @@ public final class VesContentValidatorSPI implements IUploadContentValidatorSPI
     }
 
     // VES loader checks, that any required artefact is present as well. Eager loading resolves the
-    // requirements now, so that a missing one is detected at upload time.
+    // requirements now, so that a missing one is detected at upload time. A requirement that is not
+    // in the repository may be supplied by the optional requirement resolver.
     final ErrorList aVESErrorList = new ErrorList ();
     final LoadedVES aLoadedVES = new VESLoader (m_aRepo).setUseEagerRequirementLoading (true)
+                                                        .setRequirementResolver (m_aRequirementResolver)
                                                         .convertToLoadedVES (ValidationExecutorSetStatus.createValidNow (),
                                                                              aVes,
                                                                              new VESLoaderStatus (),

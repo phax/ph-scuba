@@ -111,6 +111,28 @@ public class UploadContentValidator implements IUploadContentValidatorRegistry
     return _findValidator (sFileExt) != null;
   }
 
+  /**
+   * Get the loaded validator of the provided class, e.g. to configure it. Each validator class is
+   * loaded at most once by the {@link ServiceLoader}.
+   *
+   * @param <T>
+   *        The validator type
+   * @param aClass
+   *        The class of the validator. May not be <code>null</code>.
+   * @return <code>null</code> if no validator of that class was loaded. Note: a returned validator
+   *         is only used for those file extensions, for which no other validator was loaded before.
+   * @since 1.2.0
+   */
+  @Nullable
+  public <T extends IUploadContentValidatorSPI> T getValidatorOfClass (@NonNull final Class <T> aClass)
+  {
+    ValueEnforcer.notNull (aClass, "Class");
+    for (final IUploadContentValidatorSPI aValidator : m_aValidators)
+      if (aClass.isInstance (aValidator))
+        return aClass.cast (aValidator);
+    return null;
+  }
+
   public boolean validateContent (@NonNull final String sContextPath,
                                   @NonNull final String sFileExt,
                                   @NonNull final InputStream aIS,

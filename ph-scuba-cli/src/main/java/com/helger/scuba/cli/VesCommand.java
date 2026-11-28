@@ -35,6 +35,7 @@ import picocli.CommandLine.Spec;
           subcommands = { VesAddCommand.class,
                           VesAddStatusCommand.class,
                           VesDeprecateCommand.class,
+                          VesUndeprecateCommand.class,
                           VesValidityCommand.class,
                           VesLatestCommand.class,
                           VesLatestReleaseCommand.class,
